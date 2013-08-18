@@ -54,7 +54,7 @@ define(["avalon"], function(avalon) {
 
             if (oldIE && !this.html5Mode) {
                 //IE6,7在hash改变时不会产生历史，需要用一个iframe来共享历史
-                var iframe = avalon.parseHTML('<iframe src="#" tabindex="-1" style="display:none" />').firstChild
+                var iframe = avalon.parseHTML('<iframe src="javascript:0"  tabindex="-1" style="display:none" />').firstChild
                 document.body.appendChild(iframe)
                 this.iframe = iframe.contentWindow;
                 this.iframe.document.open().close();
@@ -69,10 +69,11 @@ define(["avalon"], function(avalon) {
                 var currLocation = location.href
                 if (proxy && (lastLocation !== currLocation)) {
                     lastLocation = currLocation
-                    var hash = proxy.location2hash[ lastLocation ]
+                    var hash = proxy.location2hash[ lastLocation ] || ""
                     if (avalon.vmodels.xxx) {
                         avalon.vmodels.xxx.currPath = hash
                     }
+                    scrollToAnchorId(hash)
                 }
             }
             //thanks https://github.com/browserstate/history.js/blob/master/scripts/uncompressed/history.html4.js#L272
@@ -83,7 +84,7 @@ define(["avalon"], function(avalon) {
                 checkerRunning = true;
                 var idoc = proxy.iframe.document
                 var documentHash = proxy.location2hash[ location.href ] || ""
-                var iframeHash = proxy.location2hash[ idoc.URL ]
+                var iframeHash = proxy.location2hash[ idoc.URL ] || ""
                 if (documentHash !== lastDocumentHash) {//如果是用户点击页面的链接触发
                     lastDocumentHash = documentHash;
                     if (iframeHash !== documentHash) {
@@ -94,22 +95,20 @@ define(["avalon"], function(avalon) {
                     if (avalon.vmodels.xxx) {
                         avalon.vmodels.xxx.currPath = documentHash
                     }
+                    scrollToAnchorId(documentHash)
                 } else if (iframeHash !== lastIframeHash) {//如果是后退按钮触发hash不一致
-                    lastIframeHash = iframeHash;
+                    lastIframeHash = iframeHash
                     if (startedWithHash && iframeHash === '') {
                         history.go(-1);
                     } else {
-                        if (iframeHash === "") {
-                            window.location = proxy.basepath + "/"
-                        } else {
-                            location.hash = iframeHash.replace(rleftSlant, "")
-                        }
+                        location.hash = iframeHash.replace(rleftSlant, "")
                     }
                 }
-                checkerRunning = false;
+                checkerRunning = false
             }
             if (this.html5Mode) {
                 this.checkUrl = avalon.bind(window, 'popstate', checkUrl)
+                this._checkUrl = checkUrl
             } else if (this.supportHashChange) {//IE 8, 9与其他不支持push state的浏览器使用hashchange
                 this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {//IE 6 7下使用定时器监听URL的变动"
@@ -134,13 +133,18 @@ define(["avalon"], function(avalon) {
             return this.getfullPath(window.location);
         },
         setLocation: function(path) {
+            if (path.charAt(0) === "#" && path.charAt(1) !== "/") {
+                var hash = path
+            }
             if (path.charAt(0) !== "/" && path.charAt(0) !== "?") {
                 path = "/" + path
             }
             var prefix = "/#" + this.options.hashPrefix + "/"
+
             if (rhashBang.test(path)) {
                 if (this.html5Mode) {//如果支持HTML5 history 新API
                     path = path.replace(rhashBang, "/")
+
                 } else {
                     path = path.replace(rhashBang, prefix)
                 }
@@ -150,11 +154,20 @@ define(["avalon"], function(avalon) {
                 }
             }
             if (path !== this.getLocation()) {
-                this.location2hash[ this.basepath + path ] = path
                 if (this.html5Mode && rleftSlant.test(path)) {
                     history.pushState({path: path}, window.title, path)
+                    this.location2hash[ window.location ] = path
+                    avalon.nextTick(function() {
+                        proxy._checkUrl()
+                    })
                 } else {
-                    return (window.location = path)
+                    if (hash) {//IE6-8 不支持http://localhost:3000/#!/#fff，会直接刷新页面
+                        window.location.hash = hash
+                    } else {
+                        window.location = path
+                    }
+                    avalon.log(window.location)
+                    this.location2hash[ window.location ] = hash ? hash : path
                 }
             }
         }
@@ -171,24 +184,26 @@ define(["avalon"], function(avalon) {
     }
 
     function scrollToAnchorId(hash) {
+        hash = hash.replace(/[^#]*#/, '').replace(/#.*/, '')
         var elem;
-        hash = hash.replace(/^#/, '')
-        // empty hash, scroll to the top of the page
-        if (!hash)
-            window.scrollTo(0, 0);
-
-        // element with given id
-        else if ((elem = document.getElementById(hash)))
+        hash = decodeURIComponent(hash)
+        if (History.IEVersion === 6) {
+            hash = hash
+                    .replace(/\%21/g, '!')
+                    .replace(/\%26/g, '&')
+                    .replace(/\%3D/g, '=')
+                    .replace(/\%3F/g, '?')
+        }
+        if ((elem = document.getElementById(hash))) {
             elem.scrollIntoView();
-
-        // first anchor with given name :-D
-        else if ((elem = getFirstAnchor(document.getElementsByName(hash))))
+        } else if ((elem = getFirstAnchor(document.getElementsByName(hash)))) {
             elem.scrollIntoView();
+        } else {
+            window.scrollTo(0, 0)
+        }
 
-        // no element and hash == 'top', scroll to the top of the page
-        else if (hash === 'top')
-            window.scrollTo(0, 0);
     }
+
     //判定A标签的target属性是否指向自身
     //thanks https://github.com/quirkey/sammy/blob/master/lib/sammy.js#L219
     History.targetIsThisWindow = function targetIsThisWindow(targetWindow) {
@@ -232,7 +247,7 @@ define(["avalon"], function(avalon) {
     })
 
     avalon.require("ready!", function() {
-        proxy.start({html5Mode: false})
+        proxy.start({html5Mode: true})
     })
 
 

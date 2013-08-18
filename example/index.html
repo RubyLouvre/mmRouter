@@ -8,11 +8,12 @@
         <script src="avalon.js"></script>
         <script>
             require("avalon.history", function() {
-                  avalon.define('xxx', function(vm){
-                      vm.currPath = ""
-                  })
-                  avalon.scan()
+                avalon.define('xxx', function(vm) {
+                    vm.currPath = ""
+                })
+                avalon.scan()
             })
+
         </script>
     </head>
     <body ms-controller="xxx">
@@ -24,7 +25,12 @@
             <li><a href="/#/ccc">ccc</a></li>
             <li><a href="http://localhost:3000/#/ddd">ddd</a></li>
             <li><a href="http://localhost:3000/eee">eee</a></li>
+            <li><a href="#fff">fff</a></li>
         </ul>
         <div>{{currPath}}</div>
+        <div style="height: 600px;width:1px;">
+
+        </div>
+        <p id="fff">会定位到这里</p>
     </body>
 </html>
