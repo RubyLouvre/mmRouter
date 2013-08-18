@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>index</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="style.css"/>
+        <script src="avalon.js"></script>
+        <script>
+            require("avalon.history", function() {
+                  avalon.define('xxx', function(vm){
+                      vm.currPath = ""
+                  })
+                  avalon.scan()
+            })
+        </script>
+    </head>
+    <body ms-controller="xxx">
+        <h3>高级大气国际化的express.js页面</h3>
+        <div>by  司徒正美</div>
+        <ul>
+            <li><a href="/aaa">aaa</a></li>
+            <li><a href="#/bbb">bbb</a></li>
+            <li><a href="/#/ccc">ccc</a></li>
+            <li><a href="http://localhost:3000/#/ddd">ddd</a></li>
+            <li><a href="http://localhost:3000/eee">eee</a></li>
+        </ul>
+        <div>{{currPath}}</div>
+    </body>
+</html>
