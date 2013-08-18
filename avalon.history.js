@@ -3,12 +3,14 @@ define(["avalon"], function(avalon) {
         this.handlers = [];
 
         this.location = window.location;
-        this.history = window.history;
+        this.location2hash = {}
     };
     var proxy
 
     // 去最左右两边的斜线
     var rootStripper = /^\/+|\/+$/g
+    var rstartWithSlant = /^\//
+    var rhashBang = /^\/#(!)?\//
     var anchorElement = document.createElement('a')
 
     History.started = false;
@@ -41,11 +43,14 @@ define(["avalon"], function(avalon) {
                 this.html5Mode = false
             }
 
-
-        
             anchorElement.href = ('/' + this.options.basepath + '/').replace(rootStripper, '/')
             var fullpath = !anchorElement.hasAttribute ? anchorElement.getAttribute("href", 4) : anchorElement.href
+
+            this.basepath = fullpath.replace(/\/$/, "") //补全路径
             this.rbasepath = new RegExp("^" + fullpath, "i")
+            this.location2hash[this.basepath] = ""
+            this.location2hash[fullpath] = ""
+
             if (oldIE && !this.html5Mode) {
                 //IE6,7在hash改变时不会产生历史，需要用一个iframe来共享历史
                 avalon.log("IE6,7， 需要注入一个iframe来产生历史")
@@ -58,32 +63,34 @@ define(["avalon"], function(avalon) {
             // 支持popstate 就监听popstate
             // 支持hashchange 就监听hashchange
             // 否则的话只能每隔一段时间进行检测了
-
+            var lastLocation = location.href
             function checkUrl() {
-                if (proxy && proxy.currPath !== proxy.lastPath) {
-                    var path = proxy.currPath
-                    proxy.lastPath = path
-                    //   proxy.changed = false
-                    avalon.log("checkUrl !!!!!!!!!!")
+                var currLocation = location.href
+                if (proxy && (lastLocation !== currLocation)) {
+                    lastLocation = currLocation
+                    var hash = proxy.location2hash[ lastLocation ]
+                    if (avalon.vmodels.xxx) {
+                        avalon.vmodels.xxx.currPath = hash
+                    }
                 }
             }
             if (this.html5Mode) {
-                this.checkUrl = avalon.bind(window, 'popstate', checkUrl);
+                this.checkUrl = avalon.bind(window, 'popstate', checkUrl)
             } else if (this.supportHashChange) {
-                this.checkUrl = avalon.bind(window, 'hashchange', checkUrl);
+                avalon.log("IE 8 9")
+                this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {
                 avalon.log("IE 6 7下使用定时器监听URL的变动")
-                this.checkUrlID = setInterval(checkUrl, this.options.interval);
+                this.checkUrl = setInterval(checkUrl, this.options.interval)
             }
         },
-       // 中断URL的监听
+        // 中断URL的监听
         stop: function() {
             avalon.unbind(window, "popstate", this.checkUrl)
             avalon.unbind(window, "hashchange", this.checkUrl)
-            clearInterval(this.checkUrlID);
+            clearInterval(this.checkUrl);
             History.started = false;
         },
-
         getfullPath: function(url) {
             var matches = url.toString().match(/^[^#]*(#.+)$/);
             var hash = matches ? matches[1] : '';
@@ -97,23 +104,26 @@ define(["avalon"], function(avalon) {
                 path = "/" + path
             }
             var prefix = "/#" + this.options.hashPrefix + "/"
-            if (/^\/#(!)?\//.test(path)) {
+            if (rhashBang.test(path)) {
                 if (this.html5Mode) {//如果支持HTML5 history 新API
-                    path = path.replace(/^\/#(!)?\//, "/")
+                    path = path.replace(rhashBang, "/")
                 } else {
-                    path = path.replace(/^\/#(!)?\//, prefix)
+                    path = path.replace(rhashBang, prefix)
                 }
             } else {
                 if (!this.html5Mode) {//如果支持HTML5 history 新API
-                    path = prefix + path.replace(/^\//, "");
+                    path = prefix + path.replace(rstartWithSlant, "");
                 }
             }
             if (path !== this.getLocation()) {
-                this.lastPath = this.currPath
-                this.currPath = path
-                if (this.html5Mode && /^\//.test(path)) {
+                this.location2hash[ this.basepath + path ] = path
+                if (this.html5Mode && rstartWithSlant.test(path)) {
                     history.pushState({path: path}, window.title, path)
                 } else {
+                    if (this.iframe) {
+                        avalon.log("11111111111111111111111")
+                        this.iframe.document.open().close()
+                    }
                     return (window.location = path)
                 }
             }
