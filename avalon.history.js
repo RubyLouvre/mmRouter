@@ -108,7 +108,7 @@ define(["avalon"], function(avalon) {
             }
             if (this.html5Mode) {
                 this.checkUrl = avalon.bind(window, 'popstate', checkUrl)
-                this._checkUrl = checkUrl
+                this._fireLocationChange = checkUrl
             } else if (this.supportHashChange) {//IE 8, 9与其他不支持push state的浏览器使用hashchange
                 this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {//IE 6 7下使用定时器监听URL的变动"
@@ -157,9 +157,7 @@ define(["avalon"], function(avalon) {
                 if (this.html5Mode && rleftSlant.test(path)) {
                     history.pushState({path: path}, window.title, path)
                     this.location2hash[ window.location ] = path
-                    avalon.nextTick(function() {
-                        proxy._checkUrl()
-                    })
+                    avalon.nextTick(proxy._fireLocationChange)
                 } else {
                     if (hash) {//IE6-8 不支持http://localhost:3000/#!/#fff，会直接刷新页面
                         window.location.hash = hash
@@ -187,13 +185,6 @@ define(["avalon"], function(avalon) {
         hash = hash.replace(/[^#]*#/, '').replace(/#.*/, '')
         var elem;
         hash = decodeURIComponent(hash)
-        if (History.IEVersion === 6) {
-            hash = hash
-                    .replace(/\%21/g, '!')
-                    .replace(/\%26/g, '&')
-                    .replace(/\%3D/g, '=')
-                    .replace(/\%3F/g, '?')
-        }
         if ((elem = document.getElementById(hash))) {
             elem.scrollIntoView();
         } else if ((elem = getFirstAnchor(document.getElementsByName(hash)))) {
@@ -218,9 +209,7 @@ define(["avalon"], function(avalon) {
         }
         return false;
     };
-    //https://github.com/quirkey/sammy/blob/master/lib/sammy.js
     //https://github.com/asual/jquery-address/blob/master/src/jquery.address.js
-    //https://github.com/jashkenas/backbone/blob/master/backbone.js
     proxy = avalon.history = new History;
 
     avalon.bind(document, "click", function(event) {
