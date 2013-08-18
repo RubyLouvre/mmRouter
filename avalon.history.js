@@ -35,12 +35,12 @@ define(["avalon"], function(avalon) {
 
             var oldIE = window.VBArray && History.IEVersion <= 7
             //延迟检测
-            this.supportPushState = !!(this.history && this.history.pushState);
+            this.supportPushState = !!(window.history.pushState);
             this.supportHashChange = !!('onhashchange' in window && (!window.VBArray || !oldIE))
 
             this.html5Mode = this.options.html5Mode;
             if (!this.supportPushState) {
-                avalon.log("当然浏览器不支持HTML5 pushState，强制使用hash hack!")
+                avalon.log("如果浏览器不支持HTML5 pushState，强制使用hash hack!")
                 this.html5Mode = false
             }
 
