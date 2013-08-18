@@ -156,7 +156,7 @@ define(["avalon"], function(avalon) {
             if (path !== this.getLocation()) {
                 if (this.html5Mode && rleftSlant.test(path)) {
                     history.pushState({path: path}, window.title, path)
-                    this.location2hash[ window.location ] = path
+                    this.location2hash[ window.location ] = hash ? hash : path
                     avalon.nextTick(proxy._fireLocationChange)
                 } else {
                     if (hash) {//IE6-8 不支持http://localhost:3000/#!/#fff，会直接刷新页面
@@ -164,7 +164,6 @@ define(["avalon"], function(avalon) {
                     } else {
                         window.location = path
                     }
-                    avalon.log(window.location)
                     this.location2hash[ window.location ] = hash ? hash : path
                 }
             }
