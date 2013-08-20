@@ -247,3 +247,4 @@ define(["avalon"], function(avalon) {
     return avalon
 })
 
+// 主要参数有 basepath  html5Mode  hashPrefix  interval domain
