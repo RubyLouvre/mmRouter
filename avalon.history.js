@@ -3,7 +3,12 @@ define(["avalon"], function(avalon) {
         this.location2hash = {}
     }
     var proxy
-
+    var defaults = {
+        basepath: '/',
+        html5Mode: true,
+        hashPrefix: "!",
+        interval: 50
+    }
     var rthimSlant = /^\/+|\/+$/g  // 去最左右两边的斜线
     var rleftSlant = /^\//         //最左的斜线
     var rhashBang = /^\/#(!)?\//   //匹配/#/ 或 /#!/
@@ -19,7 +24,7 @@ define(["avalon"], function(avalon) {
     var lastIframeHash = ""
     var lastDocumentHash = ""
     var checkerRunning = false
-    var defaults = {basepath: '/', html5Mode: true, hashPrefix: "!", interval: 50}
+
 
 
     History.prototype = {
@@ -76,11 +81,15 @@ define(["avalon"], function(avalon) {
                 if (proxy && (lastLocation !== currLocation)) {
                     lastLocation = currLocation
                     var hash = proxy.location2hash[ lastLocation ] || ""
-                    if (avalon.vmodels.xxx) {
-                        avalon.vmodels.xxx.currPath = hash
-                    }
-                    scrollToAnchorId(hash)
+                    navigate(hash)
                 }
+            }
+            function navigate(hash) {
+                var router = avalon.router
+                if (router && router.navigate) {
+                    router.navigate(hash.replace(rhashBang, ""))
+                }
+                scrollToAnchorId(hash)
             }
             //thanks https://github.com/browserstate/history.js/blob/master/scripts/uncompressed/history.html4.js#L272
             function checkUrlIE() {
@@ -100,10 +109,7 @@ define(["avalon"], function(avalon) {
                         idoc.close()
                         idoc.location.hash = documentHash.replace(rleftSlant, "")
                     }
-                    if (avalon.vmodels.xxx) {
-                        avalon.vmodels.xxx.currPath = documentHash
-                    }
-                    scrollToAnchorId(documentHash)
+                    navigate(documentHash)
                 } else if (iframeHash !== lastIframeHash) {//如果是后退按钮触发hash不一致
                     lastIframeHash = iframeHash
                     if (startedWithHash && iframeHash === '') {
@@ -238,11 +244,6 @@ define(["avalon"], function(avalon) {
         }
 
     })
-
-    avalon.require("ready!", function() {
-        proxy.start({html5Mode: true})
-    })
-
 
     return avalon
 })
