@@ -81,13 +81,13 @@ define(["avalon"], function(avalon) {
                 if (proxy && (lastLocation !== currLocation)) {
                     lastLocation = currLocation
                     var hash = proxy.location2hash[ lastLocation ] || ""
-                    navigate(hash)
+                    execRouter(hash)
                 }
             }
-            function navigate(hash) {
+            function execRouter(hash) {
                 var router = avalon.router
                 if (router && router.navigate) {
-                    router.navigate(hash.replace(rhashBang, ""))
+                    router.navigate(hash.replace(rhashBang, "/"))
                 }
                 scrollToAnchorId(hash)
             }
@@ -109,7 +109,7 @@ define(["avalon"], function(avalon) {
                         idoc.close()
                         idoc.location.hash = documentHash.replace(rleftSlant, "")
                     }
-                    navigate(documentHash)
+                    execRouter(documentHash)
                 } else if (iframeHash !== lastIframeHash) {//如果是后退按钮触发hash不一致
                     lastIframeHash = iframeHash
                     if (startedWithHash && iframeHash === '') {

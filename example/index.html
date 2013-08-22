@@ -7,12 +7,29 @@
         <link rel="stylesheet" href="style.css"/>
         <script src="avalon.js"></script>
         <script>
-            require("avalon.history", function() {
-                avalon.define('xxx', function(vm) {
+            require("avalon.router", function() {
+                var model = avalon.define('xxx', function(vm) {
                     vm.currPath = ""
                 })
+                avalon.router.get("/aaa", function(a) {
+                    model.currPath = this.path
+                })
+                avalon.router.get("/bbb", function(a) {
+                    model.currPath = this.path
+                })
+                avalon.router.get("/ccc", function(a) {
+                    model.currPath = this.path
+                })
+                avalon.router.get("/ddd", function(a) {
+                    model.currPath = this.path
+                })
+                avalon.router.get("/eee", function(a) {
+                    model.currPath = this.path
+                })
+                avalon.history.start()
                 avalon.scan()
             })
+
 
         </script>
     </head>
