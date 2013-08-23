@@ -94,9 +94,9 @@ define(["avalon"], function(avalon) {
             }
             function execRouter(hash) {
                 var router = avalon.router
+                hash = hash.replace(rhashBang, "/")
                 if (router && router.navigate) {
-
-                    router.navigate(hash.replace(rhashBang, "/"))
+                    router.navigate(hash)
                 }
                 scrollToAnchorId(hash)
             }
@@ -136,7 +136,6 @@ define(["avalon"], function(avalon) {
             } else if (this.supportHashChange) {//IE 8, 9与其他不支持push state的浏览器使用hashchange
                 this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {//IE 6 7下使用定时器监听URL的变动"
-
                 this.checkUrl = setInterval(checkUrlIE, this.options.interval)
             }
         },
@@ -151,9 +150,7 @@ define(["avalon"], function(avalon) {
             return History.getfullPath(window.location)
         },
         setLocation: function(path, hash) {
-
             var prefix = "#" + this.options.hashPrefix + "/"
-
             if (!this.html5Mode) {//如果支持HTML5 history 新API
                 var IEhash = prefix + hash.replace(rleftSlant, "")
             }
@@ -181,7 +178,7 @@ define(["avalon"], function(avalon) {
     }
 
     function scrollToAnchorId(hash, el) {
-        hash = hash.replace(/[^#]*#/, '').replace(/#.*/, '')
+        hash = hash.replace(rleftSlant, '').replace(/#.*/, '')
         hash = decodeURIComponent(hash)
         if ((el = document.getElementById(hash))) {
             el.scrollIntoView()
