@@ -11,7 +11,7 @@ define(["avalon"], function(avalon) {
     }
     var rthimSlant = /^\/+|\/+$/g  // 去最左右两边的斜线
     var rleftSlant = /^\//         //最左的斜线
-    var rhashBang = /^\/#(!)?\//   //匹配/#/ 或 /#!/
+    var rhashBang = /^#(!)?\//   //匹配/#/ 或 /#!/
     var rhashIE = /^[^#]*(#.+)$/
     var anchorElement = document.createElement('a')
 
@@ -24,8 +24,6 @@ define(["avalon"], function(avalon) {
     var lastIframeHash = ""
     var lastDocumentHash = ""
     var checkerRunning = false
-
-
 
     History.prototype = {
         constructor: History,
@@ -50,25 +48,35 @@ define(["avalon"], function(avalon) {
             }
 
             anchorElement.href = ('/' + this.options.basepath + '/').replace(rthimSlant, '/')
-            var fullpath = !anchorElement.hasAttribute ? anchorElement.getAttribute("href", 4) : anchorElement.href
+            var fullpath = History.getAbsolutePath(anchorElement)
 
-            this.basepath = fullpath.replace(/\/$/, "") //补全路径
-            this.rbasepath = new RegExp("^" + fullpath, "i")
+            anchorElement.href = "/"
+            var rootpath = History.getAbsolutePath(anchorElement)
+
+            this.basepath = fullpath.replace(/\/$/, "")
+            this.rootpath = rootpath.replace(/\/$/, "")
+
+            this.rbasepath = new RegExp("^" + this.basepath, "i")
+            this.rrootpath = new RegExp("^" + this.rootpath, "i")
+
             this.location2hash[this.basepath] = ""
             this.location2hash[fullpath] = ""
+
             var html = '<!doctype html><html><body>@</body></html>'
             if (this.options.domain) {
                 html = html.replace("<body>", "<script>document.domain =" + this.options.domain + "</script><body>")
             }
             if (oldIE && !this.html5Mode) {
                 //IE6,7在hash改变时不会产生历史，需要用一个iframe来共享历史
-                var iframe = avalon.parseHTML('<iframe src="javascript:0"  tabindex="-1" style="display:none" />').firstChild
-                document.body.appendChild(iframe)
-                this.iframe = iframe.contentWindow
-                var idoc = this.iframe.document
-                idoc.open()
-                idoc.write(html)
-                idoc.close()
+                avalon.ready(function() {
+                    var iframe = avalon.parseHTML('<iframe src="javascript:0"  tabindex="-1" style="display:none" />').firstChild
+                    document.body.appendChild(iframe)
+                    proxy.iframe = iframe.contentWindow
+                    var idoc = proxy.iframe.document
+                    idoc.open()
+                    idoc.write(html)
+                    idoc.close()
+                })
                 var startedWithHash = !!History.getHash(location.href)
             }
 
@@ -87,18 +95,20 @@ define(["avalon"], function(avalon) {
             function execRouter(hash) {
                 var router = avalon.router
                 if (router && router.navigate) {
+
                     router.navigate(hash.replace(rhashBang, "/"))
                 }
                 scrollToAnchorId(hash)
             }
             //thanks https://github.com/browserstate/history.js/blob/master/scripts/uncompressed/history.html4.js#L272
             function checkUrlIE() {
-                if (checkerRunning) {
+                if (checkerRunning || !proxy.iframe) {
                     return false
                 }
                 checkerRunning = true
                 var idoc = proxy.iframe.document
                 var documentHash = proxy.location2hash[ document.URL ] || ""
+
                 var iframeHash = proxy.location2hash[ idoc.URL ] || ""
                 if (documentHash !== lastDocumentHash) {//如果是用户点击页面的链接触发
                     lastDocumentHash = documentHash
@@ -107,7 +117,7 @@ define(["avalon"], function(avalon) {
                         idoc.open()//创建历史记录
                         idoc.write(html)
                         idoc.close()
-                        idoc.location.hash = documentHash.replace(rleftSlant, "")
+                        idoc.location.hash = documentHash
                     }
                     execRouter(documentHash)
                 } else if (iframeHash !== lastIframeHash) {//如果是后退按钮触发hash不一致
@@ -115,7 +125,7 @@ define(["avalon"], function(avalon) {
                     if (startedWithHash && iframeHash === '') {
                         history.go(-1)
                     } else {
-                        location.hash = iframeHash.replace(rleftSlant, "")
+                        location.hash = iframeHash
                     }
                 }
                 checkerRunning = false
@@ -126,6 +136,7 @@ define(["avalon"], function(avalon) {
             } else if (this.supportHashChange) {//IE 8, 9与其他不支持push state的浏览器使用hashchange
                 this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {//IE 6 7下使用定时器监听URL的变动"
+
                 this.checkUrl = setInterval(checkUrlIE, this.options.interval)
             }
         },
@@ -139,37 +150,22 @@ define(["avalon"], function(avalon) {
         getLocation: function() {
             return History.getfullPath(window.location)
         },
-        setLocation: function(path) {
-            //处理#aaa这样的路由
-            if (path.charAt(0) === "#" && path.charAt(1) !== "/") {
-                var hash = path
-            }
-            //处理http://localhost:3000/eee这样的路由，到时会变成eee，需要变成/eee
-            if (path.charAt(0) !== "/" && path.charAt(0) !== "?") {
-                path = "/" + path
-            }
-            var prefix = "/#" + this.options.hashPrefix + "/"
+        setLocation: function(path, hash) {
 
-            if (rhashBang.test(path)) {
-                //如果支持HTML5 history 新API
-                path = path.replace(rhashBang, (this.html5Mode ? "/" : prefix))
-            } else {
-                if (!this.html5Mode) {//如果支持HTML5 history 新API
-                    path = prefix + path.replace(rleftSlant, "")
-                }
+            var prefix = "#" + this.options.hashPrefix + "/"
+
+            if (!this.html5Mode) {//如果支持HTML5 history 新API
+                var IEhash = prefix + hash.replace(rleftSlant, "")
             }
+
             if (path !== this.getLocation()) {
                 if (this.html5Mode && rleftSlant.test(path)) {
                     history.pushState({path: path}, window.title, path)
-                    this.location2hash[ location.href ] = hash ? hash : path
+                    this.location2hash[ location.href ] = hash
                     avalon.nextTick(proxy._fireLocationChange) //由于没有hashchange, setInterval回调做殿后，需要自己擦屁股
                 } else {
-                    if (hash) {//IE6-8 不支持http://localhost:3000/#!/#fff，会直接刷新页面
-                        window.location.hash = hash
-                    } else {
-                        window.location = path
-                    }
-                    this.location2hash[ location.href ] = hash ? hash : path
+                    window.location.hash = IEhash
+                    this.location2hash[ location.href ] = IEhash
                 }
             }
         }
@@ -219,6 +215,9 @@ define(["avalon"], function(avalon) {
     History.getfullPath = function(url) {
         return [url.pathname, url.search, History.getHash(url)].join("")
     }
+    History.getAbsolutePath = function(a) {
+        return !a.hasAttribute ? a.getAttribute("href", 4) : a.href
+    }
     //https://github.com/asual/jquery-address/blob/master/src/jquery.address.js
     proxy = avalon.history = new History
 
@@ -236,10 +235,14 @@ define(["avalon"], function(avalon) {
 
         var hostname = target.hostname
 
-        if (hostname === window.location.hostname && proxy.rbasepath.test(target.href) &&
-                History.targetIsThisWindow(target.target)) {
-            event.preventDefault()
-            proxy.setLocation(target.getAttribute("href", 2).replace(proxy.rbasepath, ""))
+        if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
+            var path = target.getAttribute("href", 2)
+            if (path.indexOf("#/") === 0) {
+                anchorElement.href = ('/' + proxy.options.basepath + '/').replace(rthimSlant, '/') + path.slice(2)
+                var href = History.getAbsolutePath(anchorElement)
+                event.preventDefault()
+                proxy.setLocation(href.replace(proxy.rrootpath, ""), href.replace(proxy.rbasepath, ""))
+            }
             return false
         }
 

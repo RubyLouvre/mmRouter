@@ -57,7 +57,7 @@ define(["avalon.history"], function(avalon) {
     var combine = function(list, func) {
         var first = list.shift();
         var second = list.shift();
-        if (second === undefined) {
+        if (second === void 0) {
             return first;
         }
         var combination = first.map(function(val1) {
