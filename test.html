@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="avalon.js"></script>
+        <script>
+            require("avalon.router", function() {
+                var model = avalon.define('xxx', function(vm) {
+                    vm.currPath = ""
+                })
+                avalon.router.get("/:aaa", function(aaa) {
+                    model.currPath = this.path
+                })
+
+                avalon.history.start({
+                    basepath: "/"
+                })
+                avalon.scan()
+            })
+        </script>
+    </head>
+    <body ms-controller="xxx">
+        <div>{{currPath}}</div>
+        <p><a href="#/eee">1111111</a></p>
+          <p><a href="#/1233">12323</a></p>
+    </body>
+</html>
