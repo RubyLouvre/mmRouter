@@ -5,7 +5,7 @@ define(["avalon"], function(avalon) {
     var proxy
     var defaults = {
         basepath: '/',
-        html5Mode: true,
+        html5Mode: false,
         hashPrefix: "!",
         interval: 50
     }
@@ -137,6 +137,11 @@ define(["avalon"], function(avalon) {
                 this.checkUrl = avalon.bind(window, 'hashchange', checkUrl)
             } else {//IE 6 7下使用定时器监听URL的变动"
                 this.checkUrl = setInterval(checkUrlIE, this.options.interval)
+            }
+            if (this.html5Mode === false && location.href.indexOf("#!") !== -1) {
+                execRouter(location.href.split("#!")[1])
+            } else if (this.html5Mode === true && this.rbasepath.test(location.href)) {
+                execRouter(RegExp.rightContext)
             }
         },
         // 中断URL的监听
