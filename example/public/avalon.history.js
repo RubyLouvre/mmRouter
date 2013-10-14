@@ -95,7 +95,6 @@ define(["avalon"], function(avalon) {
             function execRouter(hash) {
                 var router = avalon.router
                 hash = hash.replace(rhashBang, "/")
-                console.log("hash!" + hash)
                 if (router && router.navigate) {
                     router.navigate(hash)
                 }
