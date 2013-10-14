@@ -32,6 +32,7 @@
     var rnative = /\[native code\]/
     var rchecktype = /^(?:object|array)$/
     var rwindow = /^[object (Window|DOMWindow|global)]$/
+
     function noop() {
     }
 
@@ -410,7 +411,7 @@
     }
     if (!rnative.test([].map)) {
         avalon.mix(Array.prototype, {
-//定位操作，返回数组中第一个等于给定参数的元素的索引值。
+            //定位操作，返回数组中第一个等于给定参数的元素的索引值。
             indexOf: function(item, index) {
                 var n = this.length,
                         i = ~~index
@@ -702,7 +703,7 @@
             var node = this[0] || {}, win = getWindow(node),
                     top = method === "scrollTop";
             if (!arguments.length) {
-                return win ? (prop in win) ? win[prop] : document.documentElement[method] : node[method];
+                return win ? (prop in win) ? win[prop] : root[method] : node[method];
             } else {
                 if (win) {
                     win.scrollTo(!top ? val : avalon(win).scrollLeft(), top ? val : avalon(win).scrollTop())
@@ -927,29 +928,6 @@
      *                          Array Helper                          *
      **********************************************************************/
     avalon.Array = {
-        sortBy: function(target, fn, scope, trend) {
-            //根据指定条件进行排序，通常用于对象数组。
-            //默认是按递增来排
-            trend === typeof trend === "boolean" ? trend : false
-            var array = target.map(function(item, index) {
-                return {
-                    el: item,
-                    re: fn.call(scope, item, index)
-                }
-            }).sort(function(left, right) {
-                var a = left.re,
-                        b = right.re
-                var ret = a < b ? -1 : a > b ? 1 : 0
-                return trend ? ret : ret * -1
-            })
-            return avalon.Array.pluck(array, 'el')
-        },
-        pluck: function(target, name) {
-            //取得对象数组的每个元素的指定属性，组成数组返回。
-            return target.filter(function(item) {
-                return item[name] !== void 0
-            })
-        },
         ensure: function(target) {
             //只有当前数组不存在此元素时只添加它
             var args = aslice.call(arguments, 1)
@@ -1486,14 +1464,16 @@
             var args = aslice.call(arguments, 1)
             var safelist = list.concat()
             for (var i = 0, fn; fn = safelist[i++]; ) {
-                var el = fn.element, state = fn.state, remove
+                var el = fn.element,
+                        state = fn.state,
+                        remove
                 if (el && (!state || state.sourceIndex !== 0)) {
                     if (typeof el.sourceIndex == "number") {
                         remove = el.sourceIndex === 0
                     } else {
                         try {
                             remove = !root.contains(el)
-                        } catch (e) {//旧式IE的contains不支持传入文本节点
+                        } catch (e) { //旧式IE的contains不支持传入文本节点
                             remove = true
                             while (el == el.parentNode) {
                                 if (el === root) {
@@ -1664,12 +1644,14 @@
             callback(state)
         }
     }
+
     function executeBindings(bindings, vmodels, state) {
         bindings.forEach(function(data) {
             data.state = state
             bindingHandlers[data.type](data, vmodels)
             if (data.remove) { //移除数据绑定，防止被二次解析
-                data.element.removeAttributeNode(data.node)
+                //chrome使用removeAttributeNode移除不存在的特性节点时会报错 https://github.com/RubyLouvre/avalon/issues/99
+                data.element.removeAttribute(data.node.name)
             }
             data.remove = true
         })
@@ -1893,7 +1875,6 @@
      **********************************************************************/
     //将视图中的需要局部刷新的部分与ViewModel用绑定处理函数连结在一起,生成updateView函数,
     //而它内部调用着之前编译好的函数compileFn，双向产生依赖，成为双向绑定链的最顶层
-
     //visible binding相关
     var cacheDisplay = oneObject("a,abbr,b,span,strong,em,font,i,kbd", "inline")
     avalon.mix(cacheDisplay, oneObject("div,h1,h2,h3,h4,h5,h6,section,p", "block"))
@@ -1916,7 +1897,7 @@
     }
     var supportDisplay = (function(td) {
         return window.getComputedStyle ?
-                window.getComputedStyle(td, null).display === "table-cell" : true
+                window.getComputedStyle(td, null).display === "table cell" : true
     })(DOC.createElement("td"))
     var domParser = DOC.createElement("div")
     domParser.setAttribute("className", "t")
@@ -1926,6 +1907,11 @@
         "for": "htmlFor"
     }
     var rdash = /\(([^)]*)\)/
+
+    var styleEl = '<style id="avalonStyle">.fixMsIfFlicker{ display: none!important }</style>'
+    styleEl = avalon.parseHTML(styleEl).firstChild //IE6-8 head标签的innerHTML是只读的
+    head.insertBefore(styleEl, null) //避免IE6 base标签BUG
+
     var bindingHandlers = avalon.bindingHandlers = {
         "if": function(data, vmodels, callback) {
             callback = callback || avalon.noop
@@ -1936,10 +1922,12 @@
             if (root.contains(elem)) {
                 ifcall()
             } else {
+                avalon(elem).addClass("fixMsIfFlicker")
                 var id = setInterval(function() {
                     if (root.contains(elem)) {
                         clearInterval(id)
                         ifcall()
+                        avalon(elem).removeClass("fixMsIfFlicker")
                     }
                 }, 20)
             }
@@ -1949,8 +1937,11 @@
                 updateViewFactory(data.value, vmodels, data, function(val) {
                     if (val) { //添加 如果它不在DOM树中, 插入DOM树
                         if (!root.contains(elem)) {
-                            parent.replaceChild(elem, placehoder)
-                            delete state.sourceIndex
+                            try {
+                                parent.replaceChild(elem, placehoder)
+                                delete state.sourceIndex
+                            } catch (e) {
+                            }
                         }
                         avalon.nextTick(callback)
                     } else { //移除  如果它还在DOM树中， 移出DOM树
@@ -2007,7 +1998,7 @@
                     callback = fn.apply(fn, args)
                 } else {
                     callback = function(e) {
-                        fn.apply(this, args.concat(e))
+                        return fn.apply(this, args.concat(e))
                     }
                 }
                 if (!elem.$vmodels) {
@@ -2023,7 +2014,11 @@
         data: function(data, vmodels) {
             updateViewFactory(data.value, vmodels, data, function(val, elem) {
                 var key = "data-" + data.param
-                elem.setAttribute(key, val)
+                if (val && typeof val === "object") {
+                    elem[key] = val
+                } else {
+                    elem.setAttribute(key, String(val))
+                }
             })
         },
         //抽取innerText中插入表达式，置换成真实数据放在它原来的位置
@@ -2051,7 +2046,7 @@
             }
             display = display || avalon(elem).css("display")
             display = display === "none" ? parseDisplay(elem.tagName) : display
-            updateViewFactory(data.value, vmodels, data, function(val) {
+            updateViewFactory(data.value, vmodels, data, function(val, elem) {
                 elem.style.display = val ? display : "none"
             })
         },
@@ -2135,7 +2130,7 @@
                 if (data.replaceNodes) {
                     var f = avalon.parseHTML(val)
                     var replaceNodes = avalon.slice(f.childNodes)
-                    elem.insertBefore(f, data.replaceNodes[0] || null)//fix IE6-8 insertBefore的第2个参数只能为节点或null
+                    elem.insertBefore(f, data.replaceNodes[0] || null) //fix IE6-8 insertBefore的第2个参数只能为节点或null
                     for (var i = 0, node; node = data.replaceNodes[i++]; ) {
                         elem.removeChild(node)
                     }
@@ -2169,7 +2164,11 @@
                     }
                 }
                 avalon.ui[uiName](elem, id, vmodels, opts || {})
-                elem[id + "vmodels"] = void 0
+                try {
+                    delete elem[id + "vmodels"]
+                } catch (e) {
+                    elem[id + "vmodels"] = void 0
+                }
             } else {
                 delete data.remove
             }
@@ -2184,7 +2183,7 @@
             var oldStyle = data.param,
                     elem = data.element,
                     $elem = avalon(elem),
-                    toggle
+                    toggle, oldClass
             if (!oldStyle || isFinite(oldStyle)) {
                 var text = data.value
                 var noExpr = text.replace(rexprg, function(a) {
@@ -2211,7 +2210,11 @@
                     toggle = callback ? !!callback.apply(elem, args) : true
                     className = hasExpr ? cls : className
                     if (method === "class") {
+                        if (toggle && oldClass) {
+                            $elem.removeClass(oldClass)
+                        }
                         $elem.toggleClass(className, toggle)
+                        oldClass = className
                     }
                 }, (hasExpr ? scanExpr(className) : null))
 
@@ -2389,15 +2392,17 @@
     }
     modelBinding.SELECT = function(data, fn, scope, oldValue) {
         var $elem = avalon(data.element)
+
         function updateModel() {
             if ($elem.data("observe") !== false) {
-                var neo = $elem.val()//字符串或字符串数组
+                var neo = $elem.val() //字符串或字符串数组
                 if (neo + "" !== oldValue) {
                     fn(scope, neo)
                     oldValue = neo + ""
                 }
             }
         }
+
         function updateView() {
             var neo = fn(scope)
             neo = Array.isArray(neo) ? neo.map(String) : neo + ""
@@ -2538,7 +2543,7 @@
             var el = this.$model.shift()
             this._del(0, 1)
             notifySubscribers(this, "index", 0)
-            return el//返回被移除的元素
+            return el //返回被移除的元素
         },
         pop: function() {
             var el = this.$model.pop()
@@ -2627,7 +2632,8 @@
             [][method].apply(this.$model, arguments)
             var sorted = false
             for (var i = 0, n = this.length; i < n; i++) {
-                var a = this.$model[i], b = this[i]
+                var a = this.$model[i],
+                        b = this[i]
                 b = b && b.$model ? b.$model : b
                 if (!isEqual(a, b)) {
                     sorted = true
@@ -2643,6 +2649,7 @@
             return this
         }
     })
+
     function Collection(model) {
         var array = []
         array.$id = generateID()
