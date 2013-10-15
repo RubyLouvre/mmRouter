@@ -138,11 +138,17 @@ define(["avalon"], function(avalon) {
             } else {//IE 6 7下使用定时器监听URL的变动"
                 this.checkUrl = setInterval(checkUrlIE, this.options.interval)
             }
-            if (this.html5Mode === false && location.href.indexOf("#!") !== -1) {
-                execRouter(location.href.split("#!")[1])
+            if (this.html5Mode === false) {
+                if (this.basepath === location.href.replace(/\/$/, "")) {
+                    execRouter("/")
+                } else if (location.href.indexOf("#!") !== -1) {
+                    execRouter(location.href.split("#!")[1])
+                }
             } else if (this.html5Mode === true && this.rbasepath.test(location.href)) {
                 execRouter(RegExp.rightContext)
             }
+
+
         },
         // 中断URL的监听
         stop: function() {
