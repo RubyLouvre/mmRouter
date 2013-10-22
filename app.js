@@ -6,16 +6,25 @@ app.get('/', function(req, res) {
     res.sendfile('index.html');
 });
 
-"aaa,bbb,ccc,ddd,eee".replace(/\w+/g, function(method) {
-    app.get('/' + method, function(req, res) {
+"aaa,bbb,ccc,eee".replace(/\w+/g, function(method) {
+    app.get("/" + method + "", function(req, res) {
         if (req.xhr) {
             res.sendfile(method + '.html');
         } else {
             res.sendfile('index.html');
         }
     });
-
 })
+
+
+app.get("/ddd/:ddd?", function(req, res) {
+    if (req.xhr) {
+        res.sendfile("ddd.html");
+    } else {
+        res.sendfile('index.html');
+    }
+});
+
 
 app.listen(3000);
 console.log("please open http://localhost:3000/")

@@ -4,17 +4,20 @@
     <head>
         <title>index</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" href="style.css"/>
-        <script src="avalon.js"></script>
-        <script src="json2.js"></script>
+        <link rel="stylesheet" href="http://localhost:3000/style.css"/>
+        <script src="http://localhost:3000/avalon.js"></script>
+        <script src="http://localhost:3000/json2.js"></script>
         <script>
-            require("avalon.router", function() {
+            require("mmRouter", function() {
            
                 //使用路由器的几个步骤
                 //1先加载mmRouter（请将mmRouter.js, mmHistory.js这两个文件与avalon.js放在一起）
                 //2定义VM
                 var model = avalon.define('xxx', function(vm) {
                     vm.currPath = ""
+                    vm.name = "司徒正美"
+                    vm.password = "123456"
+                    vm.param = ""
                 })
                 //3定义路由规则
                 avalon.router.get("/aaa", function(a) {
@@ -30,7 +33,8 @@
                     model.currPath = this.path
                 })
                 avalon.router.get("/ddd/:ddd", function(a) {//:ddd为参数
-                    avalon.log(a)
+                
+                    model.param = a
                     model.currPath = this.path
                 })
                 avalon.router.get("/eee", function(a) {
@@ -68,8 +72,8 @@
                 <li><a href="#/eee">eee</a></li>
             </ul>
             <div style="color:red">{{currPath}}</div>
-            <div style="height: 600px;width:1px;">
-
+            <div style="height: 600px;width:400px;" ms-include-src="currPath.replace(/\/\d+/,'')">
+                这是默认的首页
             </div>
             <p id="eee">会定位到这里</p>-->
         </div>
