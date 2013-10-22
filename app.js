@@ -6,7 +6,7 @@ app.get('/', function(req, res) {
     res.sendfile('index.html');
 });
 
-"aaa,bbb,ccc,eee".replace(/\w+/g, function(method) {
+"aaa,bbb,ccc,eee,default".replace(/\w+/g, function(method) {
     app.get("/" + method + "", function(req, res) {
         if (req.xhr) {
             res.sendfile(method + '.html');
