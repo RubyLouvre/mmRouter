@@ -250,8 +250,8 @@ define(["avalon"], function(avalon) {
                 var href = History.getAbsolutePath(anchorElement)
                 event.preventDefault()
                 proxy.setLocation(href.replace(proxy.rrootpath, ""), href.replace(proxy.rbasepath, ""))
+                return false
             }
-            return false
         }
 
     })
