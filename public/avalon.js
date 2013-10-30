@@ -1,5 +1,5 @@
 //==================================================
-// avalon 0.97   by 司徒正美 2013.10.21
+// avalon 0.971   by 司徒正美 2013.10.21
 // 疑问:
 //    什么协议? MIT, (五种开源协议的比较(BSD,Apache,GPL,LGPL,MIThttp://www.awflasher.com/blog/archives/939)
 //    依赖情况? 没有任何依赖，可自由搭配jQuery, mass等使用,并不会引发冲突问题
@@ -256,23 +256,24 @@
                 node = node[0]
             }
             var prop = /[_-]/.test(name) ? camelize(name) : name
-            name =  avalon.cssName(prop) || prop
+            name = avalon.cssName(prop) || prop
             if (value === void 0 || typeof value === "boolean") { //获取样式
                 var fn = cssHooks[prop + ":get"] || cssHooks["@:get"]
                 var val = fn(node, name)
                 return value === true ? parseFloat(val) || 0 : val
-            } else { //设置样式
-                var type = typeof value
-                if (type === "number" && !isFinite(value + "")) {
-                    return
+            } else if (value === "") { //请除样式
+                node.style[name] = ""
+            } else {//设置样式
+                if (value == null || value !== value) {
+                    return;
                 }
                 if (isFinite(value) && !avalon.cssNumber[prop]) {
                     value += "px"
                 }
                 fn = cssHooks[prop + ":set"] || cssHooks["@:set"]
                 fn(node, name, value)
-                return that
             }
+            return that
         }
     })
 
@@ -741,6 +742,8 @@
     }
     cssHooks["@:set"] = function(node, name, value) {
         try { //node.style.width = NaN;node.style.width = "xxxxxxx";node.style.width = undefine 在旧式IE下会抛异常
+            // Support: 在Chrome, Safari下用空字符串去掉 !important;
+            node.style[name] = "";
             node.style[name] = value
         } catch (e) {
         }
@@ -819,6 +822,9 @@
                     avalon(node).position()[name] + "px"
         }
     })
+
+
+
     "Width,Height".replace(rword, function(name) {
         var method = name.toLowerCase(),
                 clientProp = "client" + name,
@@ -842,6 +848,7 @@
                 return this.css(method, value)
             }
         }
+
     })
     avalon.fn.offset = function() { //取得距离页面左右角的坐标
         var node = this[0],
@@ -1274,9 +1281,11 @@
                                 if (rchecktype.test(valueType)) {
                                     if ("value" in accessor) { //如果已经转换过
                                         value = updateViewModel(value, neo, valueType)
+                                        vmodel.$fire && vmodel.$fire(name, value, preValue)
                                     } else { //如果本来就是VM就直接输出，否则要转换
                                         value = neo.$model ? neo : modelFactory(neo, neo)
                                     }
+                                    accessor[subscribers] = value[subscribers]
                                     complexValue = value.$model
                                 } else { //如果是其他数据类型
                                     value = neo
@@ -1413,11 +1422,11 @@
                 owner[name] = true
                 buffer.push(
                         //由于不知对方会传入什么,因此set, let都用上
-                        "\tPublic Property Let [" + name + "](val)", //setter
-                        "\t\tCall [__proxy__]([__data__], \"" + name + "\", val)",
+                        "\tPublic Property Let [" + name + "](val" + expose + ")", //setter
+                        "\t\tCall [__proxy__]([__data__], \"" + name + "\", val" + expose + ")",
                         "\tEnd Property",
-                        "\tPublic Property Set [" + name + "](val)", //setter
-                        "\t\tCall [__proxy__]([__data__], \"" + name + "\", val)",
+                        "\tPublic Property Set [" + name + "](val" + expose + ")", //setter
+                        "\t\tCall [__proxy__]([__data__], \"" + name + "\", val" + expose + ")",
                         "\tEnd Property",
                         "\tPublic Property Get [" + name + "]", //getter
                         "\tOn Error Resume Next", //必须优先使用set语句,否则它会误将数组当字符串返回
@@ -1468,12 +1477,12 @@
                         state = fn.state,
                         remove
                 if (el && (!state || state.sourceIndex !== 0)) {
-                    if (typeof el.sourceIndex == "number") {
+                    if (typeof el.sourceIndex == "number") {//IE6-IE11
                         remove = el.sourceIndex === 0
                     } else {
                         try {
                             remove = !root.contains(el)
-                        } catch (e) { //旧式IE的contains不支持传入文本节点
+                        } catch (e) { //如果不存在contains方法
                             remove = true
                             while (el == el.parentNode) {
                                 if (el === root) {
@@ -1489,10 +1498,10 @@
                 } else {
                     fn.apply(0, args) //强制重新计算自身
                 }
-
             }
         }
     }
+
     /*********************************************************************
      *                           Scan                                     *
      **********************************************************************/
@@ -1535,7 +1544,7 @@
             }
             //ms-important不包含父VM，ms-controller相反
             vmodels = node === b ? [newVmodel] : [newVmodel].concat(vmodels)
-            elem.removeAttributeNode(node)
+            elem.removeAttribute(node.name)//removeAttributeNode不会刷新[ms-controller]样式规则
         }
         scanAttr(elem, vmodels, function(status) { //扫描特性节点
             if (!stopScan[elem.tagName.toLowerCase()] && rbind.test(elem.innerHTML)) {
@@ -1632,11 +1641,12 @@
                 }
             }
         }
-        bindings.sort(function(a, b){
+        bindings.sort(function(a, b) {
             return a.node.name > b.node.name
         })
         if (ifBinding) {
             // 优先处理if绑定， 如果if绑定的表达式为假，那么就不处理同级的绑定属性及扫描子孙节点
+            // 使用共享对象state，实现同一棵树中的绑定之间 的通信
             ifBinding.state = {}
             bindingHandlers["if"](ifBinding, vmodels, function() {
                 executeBindings(bindings, vmodels, ifBinding.state)
@@ -1916,6 +1926,18 @@
     styleEl = avalon.parseHTML(styleEl).firstChild //IE6-8 head标签的innerHTML是只读的
     head.insertBefore(styleEl, null) //避免IE6 base标签BUG
 
+    if (DOC.implementation && DOC.implementation.hasFeature("MutationEvents", "2.0")) {
+        var ifCallbacks = []
+        root.addEventListener("DOMNodeInserted", function(e) {
+            var safelist = ifCallbacks.concat()
+            for (var i = 0, fn; fn = safelist[i++]; ) {
+                if (fn(e) === false) {
+                    avalon.Array.remove(ifCallbacks, fn)
+                }
+            }
+        })
+    }
+
     var bindingHandlers = avalon.bindingHandlers = {
         "if": function(data, vmodels, callback) {
             callback = callback || avalon.noop
@@ -1924,19 +1946,24 @@
                     state = data.state,
                     parent
             if (root.contains(elem)) {
-                ifcall()
+                ifCall()
             } else {
                 avalon(elem).addClass("fixMsIfFlicker")
-                var id = setInterval(function() {
-                    if (root.contains(elem)) {
-                        clearInterval(id)
-                        ifcall()
-                        avalon(elem).removeClass("fixMsIfFlicker")
-                    }
-                }, 20)
+                if (ifCallbacks) {
+                    ifCallbacks.push(ifCheck)
+                } else {
+                    var id = setInterval(ifCheck, 20)
+                }
             }
-
-            function ifcall() {
+            function ifCheck(e) {
+                if (e ? e.target == elem : root.contains(elem)) {
+                    clearInterval(id)
+                    ifCall()
+                    avalon(elem).removeClass("fixMsIfFlicker")
+                    return false
+                }
+            }
+            function ifCall() {
                 parent = elem.parentNode
                 updateViewFactory(data.value, vmodels, data, function(val) {
                     if (val) { //添加 如果它不在DOM树中, 插入DOM树
@@ -2429,14 +2456,11 @@
         WebKitAnimationEvent: 'webkitAnimationEnd'
     }
     for (var name in eventName) {
-        try {
-            DOC.createEvent(name)
+        if (/object|function/.test(typeof window[name])) {
             eventMap.animationend = eventName[name]
-            break
-        } catch (e) {
+            break;
         }
     }
-
     function fixEvent(event) {
         var target = event.target = event.srcElement
         event.which = event.charCode != null ? event.charCode : event.keyCode
@@ -3566,7 +3590,7 @@
             doScrollCheck()
         }
     }
-  
+
     avalon.ready = function(fn) {
         innerRequire("ready!", fn)
     }
