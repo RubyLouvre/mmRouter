@@ -7,7 +7,8 @@ define(["avalon"], function(avalon) {
         basepath: '/',
         html5Mode: false,
         hashPrefix: "!",
-        interval: 50
+        interval: 50, //IE6-7,使用轮询，这是其时间时隔
+        fireAnchor: true//决定是否将滚动条定位于与hash同ID的元素上
     }
     var rthimSlant = /^\/+|\/+$/g  // 去最左右两边的斜线
     var rleftSlant = /^\//         //最左的斜线
@@ -98,7 +99,8 @@ define(["avalon"], function(avalon) {
                 if (router && router.navigate) {
                     router.navigate(hash)
                 }
-                scrollToAnchorId(hash)
+                if (proxy.options.fireAnchor)
+                    scrollToAnchorId(hash)
             }
             //thanks https://github.com/browserstate/history.js/blob/master/scripts/uncompressed/history.html4.js#L272
             function checkUrlIE() {
@@ -261,4 +263,4 @@ define(["avalon"], function(avalon) {
     return avalon
 })
 
-// 主要参数有 basepath  html5Mode  hashPrefix  interval domain
+// 主要参数有 basepath  html5Mode  hashPrefix  interval domain fireAnchor
