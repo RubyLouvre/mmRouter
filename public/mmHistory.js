@@ -142,7 +142,9 @@ define(["avalon"], function(avalon) {
                 if (this.basepath === location.href.replace(/\/$/, "")) {
                     execRouter("/")
                 } else if (location.href.indexOf("#!") !== -1) {
-                    execRouter(location.href.split("#!")[1])
+                    var hash = location.href.split("#!")[1]
+                    this.location2hash[ location.href ] = "#" + this.options.hashPrefix + "/" + hash.replace(rleftSlant, "")
+                    execRouter(hash)
                 }
             } else if (this.html5Mode === true && this.rbasepath.test(location.href)) {
                 execRouter(RegExp.rightContext)
