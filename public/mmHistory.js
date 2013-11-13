@@ -246,7 +246,7 @@ define(["avalon"], function(avalon) {
         }
 
         var hostname = target.hostname
-        if (hostname == void 0) {
+        if (hostname == void 0) {//fix IE下通过ms-href动态生成href，不存在hostname属性的BUG
             var a = document.createElement("a")
             a.href = target + ""
             hostname = a.hostname
