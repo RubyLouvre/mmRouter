@@ -246,7 +246,11 @@ define(["avalon"], function(avalon) {
         }
 
         var hostname = target.hostname
-
+        if (hostname == void 0) {
+            var a = document.createElement("a")
+            a.href = target + ""
+            hostname = a.hostname
+        }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
             if (path.indexOf("#/") === 0) {
