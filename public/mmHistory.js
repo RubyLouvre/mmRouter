@@ -252,7 +252,7 @@ define(["avalon"], function(avalon) {
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
-            if (path.indexOf("#/") === 0) {
+           if ( ~path.indexOf("#/") || ~path.indexOf("#!/")) {
                 anchorElement.href = ('/' + proxy.options.basepath + '/').replace(rthimSlant, '/') + path.slice(2)
                 var href = History.getAbsolutePath(anchorElement)
                 event.preventDefault()
