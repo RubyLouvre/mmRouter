@@ -183,7 +183,7 @@ define(["avalon"], function(avalon) {
         }
     }
 
-
+    //得到页面第一个符合条件的A标签
     function getFirstAnchor(list) {
         for (var i = 0, el; el = list[i++]; ) {
             if (el.nodeName === "A") {
@@ -249,9 +249,6 @@ define(["avalon"], function(avalon) {
         if (!hostname) {//fix IE下通过ms-href动态生成href，不存在hostname属性的BUG
             var fullHref = document.querySelector ? target + "" : target.getAttribute("href", 4)
             hostname = (fullHref.match(rurl) || ["","",""])[2]//小心javascript:void(0)
-            // var a = document.createElement("a")
-            //  a.href = target + ""
-            //  hostname = a.hostname
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
