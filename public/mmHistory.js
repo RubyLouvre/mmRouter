@@ -97,6 +97,7 @@ define(["avalon"], function(avalon) {
                 var router = avalon.router
                 hash = hash.replace(rhashBang, "/")
                 if (router && router.navigate) {
+                    router.setLatelyPath(hash)
                     router.navigate(hash)
                 }
                 if (proxy.options.fireAnchor)

@@ -207,6 +207,12 @@ define(["mmHistory"], function(avalon) {
                 value: table
             };
         },
+        getLatelyPath: function() {
+            return getCookie("msLatelyPath")
+        },
+        setLatelyPath: function(path) {
+            setCookie("msLatelyPath", path)
+        },
         _expandRules: function(ast) {
             if (Array.isArray(ast) && ast.length === 0) {
                 return [];
@@ -242,7 +248,43 @@ define(["mmHistory"], function(avalon) {
             return this.add(method.toUpperCase(), path, fn)
         }
     })
+    function supportLocalStorage() {
+        try {
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } catch (e) {
+            return false;
+        }
+    }
+    if (supportLocalStorage()) {
+        Router.prototype.getLatelyPath = function() {
+            return localStorage.getItem("msLatelyPath")
+        }
+        Router.prototype.setLatelyPath = function(path) {
+            localStorage.setItem("msLatelyPath", path)
+        }
+    }
 
+    function escapeCookie(value) {
+        return String(value).replace(/[,;"\\=\s%]/g, function(character) {
+            return encodeURIComponent(character);
+        });
+    }
+    function setCookie(key, value) {
+        var date = new Date();//将date设置为10天以后的时间 
+        date.setTime(date.getTime() + 60 * 60 * 24);
+        document.cookie = escapeCookie(key) + '=' + escapeCookie(value) + "expires=" + date.toGMTString()
+    }
+    function getCookie(name) {
+        var result = {};
+        if (document.cookie !== '') {
+            var cookies = document.cookie.split('; ')
+            for (var i = 0, l = cookies.length; i < l; i++) {
+                var item = cookies[i].split('=');
+                result[decodeURIComponent(item[0])] = decodeURIComponent(item[1]);
+            }
+        }
+        return name ? result[name] : result
+    }
 
     avalon.router = new Router
     // 先添加路由规则与对应的处理函数
