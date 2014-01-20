@@ -1,7 +1,4 @@
 define(["avalon"], function(avalon) {
-    var History = avalon.History = function() {
-        this.location2hash = {}
-    }
     var proxy
     var defaults = {
         basepath: '/',
@@ -10,6 +7,11 @@ define(["avalon"], function(avalon) {
         interval: 50, //IE6-7,使用轮询，这是其时间时隔
         fireAnchor: true//决定是否将滚动条定位于与hash同ID的元素上
     }
+    var History = avalon.History = function() {
+        this.location2hash = {}
+        this.options = defaults
+    }
+
     var rthimSlant = /^\/+|\/+$/g  // 去最左右两边的斜线
     var rleftSlant = /^\//         //最左的斜线
     var rhashBang = /^#(!)?\//   //匹配/#/ 或 /#!/
@@ -32,8 +34,7 @@ define(["avalon"], function(avalon) {
             if (History.started)
                 throw new Error("avalon.history has already been started")
             History.started = true
-            this.options = avalon.mix({}, defaults, this.options, options)
-
+            this.options = avalon.mix({}, this.options, options)
             //IE6不支持maxHeight, IE7支持XMLHttpRequest, IE8支持window.Element，querySelector, 
             //IE9支持window.Node, window.HTMLElement, IE10不支持条件注释
 
@@ -249,11 +250,11 @@ define(["avalon"], function(avalon) {
         var hostname = target.hostname
         if (!hostname) {//fix IE下通过ms-href动态生成href，不存在hostname属性的BUG
             var fullHref = document.querySelector ? target + "" : target.getAttribute("href", 4)
-            hostname = (fullHref.match(rurl) || ["","",""])[2]//小心javascript:void(0)
+            hostname = (fullHref.match(rurl) || ["", "", ""])[2]//小心javascript:void(0)
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
-           if ( ~path.indexOf("#/") || ~path.indexOf("#!/")) {
+            if (~path.indexOf("#/") || ~path.indexOf("#!/")) {
                 anchorElement.href = ('/' + proxy.options.basepath + '/').replace(rthimSlant, '/') + path.slice(2)
                 var href = History.getAbsolutePath(anchorElement)
                 event.preventDefault()
