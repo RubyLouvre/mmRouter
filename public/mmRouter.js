@@ -272,7 +272,7 @@ define(["mmHistory"], function(avalon) {
     function setCookie(key, value) {
         var date = new Date();//将date设置为10天以后的时间 
         date.setTime(date.getTime() + 60 * 60 * 24);
-        document.cookie = escapeCookie(key) + '=' + escapeCookie(value) + "expires=" + date.toGMTString()
+        document.cookie = escapeCookie(key) + '=' + escapeCookie(value) + ";expires=" + date.toGMTString()
     }
     function getCookie(name) {
         var result = {};
