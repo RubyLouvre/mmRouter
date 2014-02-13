@@ -255,7 +255,7 @@ define(["avalon"], function(avalon) {
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
-            if(!document.querySelector){
+            if(!document.querySelector && path.indexOf("#") !== -1){
                 path = path.slice(path.indexOf("#"))
             }
             if (~path.indexOf("#/") || ~path.indexOf("#!/")) {
