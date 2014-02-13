@@ -251,9 +251,13 @@ define(["avalon"], function(avalon) {
         if (!hostname) {//fix IE下通过ms-href动态生成href，不存在hostname属性的BUG
             var fullHref = document.querySelector ? target + "" : target.getAttribute("href", 4)
             hostname = (fullHref.match(rurl) || ["", "", ""])[2]//小心javascript:void(0)
+           
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
+            if(!document.querySelector){
+                path = path.slice(path.indexOf("#"))
+            }
             if (~path.indexOf("#/") || ~path.indexOf("#!/")) {
                 anchorElement.href = ('/' + proxy.options.basepath + '/').replace(rthimSlant, '/') + path.slice(2)
                 var href = History.getAbsolutePath(anchorElement)
