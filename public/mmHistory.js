@@ -27,7 +27,7 @@ define(["avalon"], function(avalon) {
     var lastIframeHash = ""
     var lastDocumentHash = ""
     var checkerRunning = false
-
+    var oldIE = window.VBArray && History.IEVersion <= 7
     History.prototype = {
         constructor: History,
         start: function(options) {
@@ -38,7 +38,7 @@ define(["avalon"], function(avalon) {
             //IE6不支持maxHeight, IE7支持XMLHttpRequest, IE8支持window.Element，querySelector, 
             //IE9支持window.Node, window.HTMLElement, IE10不支持条件注释
 
-            var oldIE = window.VBArray && History.IEVersion <= 7
+
             //延迟检测
             this.supportPushState = !!(window.history.pushState)
             this.supportHashChange = !!('onhashchange' in window && (!window.VBArray || !oldIE))
@@ -249,13 +249,13 @@ define(["avalon"], function(avalon) {
 
         var hostname = target.hostname
         if (!hostname) {//fix IE下通过ms-href动态生成href，不存在hostname属性的BUG
-            var fullHref = document.querySelector ? target + "" : target.getAttribute("href", 4)
+            var fullHref = !oldIE ? target + "" : target.getAttribute("href", 4)
             hostname = (fullHref.match(rurl) || ["", "", ""])[2]//小心javascript:void(0)
-           
+
         }
         if (hostname === window.location.hostname && History.targetIsThisWindow(target.target)) {
             var path = target.getAttribute("href", 2)
-            if(!document.querySelector && path.indexOf("#") !== -1){
+            if (oldIE && path.indexOf("#") !== -1) {
                 path = path.slice(path.indexOf("#"))
             }
             if (~path.indexOf("#/") || ~path.indexOf("#!/")) {
