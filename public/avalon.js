@@ -5,7 +5,7 @@
  http://weibo.com/jslouvre/
  
  Released under the MIT license
- avalon 1.1 2014.1.25
+ avalon 1.2.2 2014.2.20
  ==================================================*/
 (function(DOC) {
     var Registry = {} //将函数曝光到此对象上，方便访问器收集依赖
@@ -329,39 +329,11 @@
         }
         return false
     }
-    //视浏览器情况采用最快的异步回调
-    if (window.setImmediate) { //IE10-11
-        avalon.nextTick = setImmediate.bind(window)
-    } else if (window.VBArray) { //IE6-10下这个通常只要1ms,而且没有副作用，不会发出请求，setImmediate如果只执行一次，与setTimeout一样要140ms上下
-        var handlerQueue = []
-
-        function drainQueue() {
-            var fn = handlerQueue.shift()
-            if (fn) {
-                fn()
-                if (handlerQueue.length) {
-                    avalon.nextTick()
-                }
-            }
-        }
-        avalon.nextTick = function(callback) {
-            if (typeof callback === "function") {
-                handlerQueue.push(callback)
-            }
-            var node = DOC.createElement("script")
-            node.onreadystatechange = function() {
-                drainQueue() //在interactive阶段就触发
-                node.onreadystatechange = null
-                head.removeChild(node)
-                node = null
-            }//fix IE6https://github.com/RubyLouvre/avalon/issues/269
-            head.inertBefore(node, head.firstChild)
-        }
-    } else {
-        avalon.nextTick = function(callback) {
-            setTimeout(callback, 0)
-        }
+    //视浏览器情况采用最快的异步回调(在avalon.ready里，还有一个分支，用于处理IE6-9)
+    avalon.nextTick = window.setImmediate ? setImmediate.bind(window) : function(callback) {
+        setTimeout(callback, 0)//IE10-11 or W3C
     }
+
     /*********************************************************************
      *                           modelFactory                             *
      **********************************************************************/
@@ -919,7 +891,7 @@
             return match.charAt(1).toUpperCase()
         })
     }
-    var rparse = /^(?:null|false|true|NaN|\{.*\}|\[.*\])$/
+
     var rnospaces = /\S+/g
 
     avalon.fn.mix({
@@ -1019,9 +991,9 @@
             var offsetParent, offset,
                     elem = this[0],
                     parentOffset = {
-                top: 0,
-                left: 0
-            }
+                        top: 0,
+                        left: 0
+                    }
             if (!elem) {
                 return
             }
@@ -1076,17 +1048,16 @@
             return get ? val : this
         }
     })
-
-    function parseData(val) {
-        var _eval = false
-        if (rparse.test(val) || +val + "" === val) {
-            _eval = true
-        }
+    function parseData(data) {
         try {
-            return _eval ? eval("0," + val) : val
+            data = data === "true" ? true :
+                    data === "false" ? false :
+                    data === "null" ? null :
+                    data === "NaN" ? NaN :
+                    +data + "" === data ? +data : eval("0," + data)
         } catch (e) {
-            return val
         }
+        return data
     }
     //生成avalon.fn.scrollLeft, avalon.fn.scrollTop方法
     avalon.each({
@@ -1587,14 +1558,14 @@
     function checkScan(elem, callback) {
         var innerHTML = NaN,
                 id = setInterval(function() {
-            var currHTML = elem.innerHTML
-            if (currHTML === innerHTML) {
-                clearInterval(id)
-                callback()
-            } else {
-                innerHTML = currHTML
-            }
-        }, interval)
+                    var currHTML = elem.innerHTML
+                    if (currHTML === innerHTML) {
+                        clearInterval(id)
+                        callback()
+                    } else {
+                        innerHTML = currHTML
+                    }
+                }, interval)
     }
 
 
@@ -1617,6 +1588,7 @@
             //ms-important不包含父VM，ms-controller相反
             vmodels = node === b ? [newVmodel] : [newVmodel].concat(vmodels)
             elem.removeAttribute(node.name) //removeAttributeNode不会刷新[ms-controller]样式规则
+            avalon(elem).removeClass(node.name)
         }
         scanAttr(elem, vmodels) //扫描特性节点
     }
@@ -2080,7 +2052,7 @@
     }
     var rdash = /\(([^)]*)\)/
 
-    var styleEl = '<style id="avalonStyle">.fixMsIfFlicker{ display: none!important }</style>'
+    var styleEl = '<style id="avalonStyle">.avalonHide{ display: none!important }</style>'
     styleEl = avalon.parseHTML(styleEl).firstChild //IE6-8 head标签的innerHTML是只读的
     head.insertBefore(styleEl, null) //避免IE6 base标签BUG
     var rnoscripts = /<noscript.*?>(?:[\s\S]+?)<\/noscript>/img
@@ -2459,7 +2431,8 @@
         },
         "visible": function(val, elem, data) {
             elem.style.display = val ? data.display : "none"
-        }
+        },
+        "widget": noop
     }
     //这里的函数只会在第一次被扫描后被执行一次，并放进行对应VM属性的subscribers数组内（操作方为registerSubscriber）
     var bindingHandlers = avalon.bindingHandlers = {
@@ -2697,7 +2670,7 @@
                 var callback = getBindingCallback(element, "data-widget-defined", vmodels)
                 if (callback) {
                     callback.call(element, widgetVM)
-                } 
+                }
             } else if (vmodels.length) {//如果该组件还没有加载，那么保存当前的vmodels
                 element.vmodels = vmodels
             }
@@ -2757,6 +2730,7 @@
         }
         //当value变化时改变model的值
         var updateModel = function() {
+            element.oldValue = element.vlaue
             if ($elem.data("duplex-observe") !== false) {
                 evaluator(valueAccessor())
             }
@@ -2826,7 +2800,7 @@
                     }
                 }
 
-                if (DOC.documentMode === 9) { //fuck IE9
+                if (DOC.documentMode === 9) { // IE9 无法在切剪中同步VM
                     var selectionchange = function(e) {
                         if (e.type === "focus") {
                             DOC.addEventListener("selectionchange", updateModel)
@@ -2845,8 +2819,52 @@
                 }
             }
         }
-
+        if (!hackValueSetter && W3C) {//chrome, opera, safari
+            element.oldValue = element.value
+            checkElements.push(element)
+        }
         registerSubscriber(data)
+    }
+    var checkElements = []
+    setInterval(function() {
+        for (var n = checkElements.length - 1; n >= 0; n--) {
+            var el = checkElements[n]
+            if (el.parentNode) {
+                if (el.oldValue !== el.value) {
+                    el.oldValue = el.value
+                    var event = DOC.createEvent("Event")
+                    event.initEvent("input", true, true)
+                    el.dispatchEvent(event)
+                } else {
+                    checkElements.splice(n, 1)
+                }
+            }
+        }
+    }, 16)
+    //http://msdn.microsoft.com/en-us/library/dd229916(VS.85).aspx
+    //https://docs.google.com/document/d/1jwA8mtClwxI-QJuHT7872Z0pxpZz8PBkf2bGAbsUtqs/edit?pli=1
+    //IE9-11, firefox3+
+    var hackValueSetter
+    if (W3C) {//IE8也有HTMLInputElement与 Object.getOwnPropertyDescriptor
+        try {
+            var inputProto = HTMLInputElement.prototype, oldSetter
+            function newSetter(newValue) {
+                var oldValue = this.getAttribute("value")
+                if (newValue !== oldValue) {
+                    this.setAttribute("value", newValue)
+                    oldSetter.call(this, newValue)
+                    var event = DOC.createEvent("Event")
+                    event.initEvent("input", true, true)
+                    this.dispatchEvent(event)
+                }
+            }
+            oldSetter = Object.getOwnPropertyDescriptor(inputProto, "value").set
+            Object.defineProperty(inputProto, "value", {
+                set: newSetter
+            })
+            hackValueSetter = true
+        } catch (e) {
+        }
     }
     modelBinding.SELECT = function(element, evaluator, data, oldValue) {
         var $elem = avalon(element)
@@ -2924,11 +2942,11 @@
     }
     "animationend,blur,change,click,dblclick,focus,keydown,keypress,keyup,mousedown,mouseenter,mouseleave,mousemove,mouseout,mouseover,mouseup,scroll".
             replace(rword, function(name) {
-        bindingHandlers[name] = function(data) {
-            data.param = name
-            bindingHandlers.on.apply(0, arguments)
-        }
-    })
+                bindingHandlers[name] = function(data) {
+                    data.param = name
+                    bindingHandlers.on.apply(0, arguments)
+                }
+            })
     if (!("onmouseenter" in root)) {
         var oldBind = avalon.bind
         var events = {
@@ -3000,7 +3018,9 @@
         },
         push: function() {
             ap.push.apply(this.$model, arguments)
-            return this._add(arguments) //返回长度
+            var n = this._add(arguments)
+            notifySubscribers(this, "index", n > 2 ?  n - 2 : 0)
+            return n
         },
         unshift: function() {
             ap.unshift.apply(this.$model, arguments)
@@ -3302,9 +3322,9 @@
                     dec = dec_point || ".",
                     s = "",
                     toFixedFix = function(n, prec) {
-                var k = Math.pow(10, prec)
-                return "" + Math.round(n * k) / k
-            }
+                        var k = Math.pow(10, prec)
+                        return "" + Math.round(n * k) / k
+                    }
             // Fix for IE parseFloat(0.55).toFixed(0) = 0 
             s = (prec ? toFixedFix(n, prec) : "" + Math.round(n)).split('.')
             if (s[0].length > 3) {
@@ -3900,17 +3920,17 @@
     }
 
     if (DOC.readyState === "complete") {
-        fireReady() //如果在domReady之外加载
+        setTimeout(fireReady) //如果在domReady之外加载
     } else if (W3C) {
-        DOC.addEventListener(ready, function() {
-            fireReady()
-        })
+        DOC.addEventListener(ready, fireReady)
+        window.addEventListener("load", fireReady)
     } else {
         DOC.attachEvent("onreadystatechange", function() {
             if (DOC.readyState === "complete") {
                 fireReady()
             }
         })
+        window.attachEvent("onload", fireReady)
         if (root.doScroll) {
             doScrollCheck()
         }
@@ -3922,26 +3942,34 @@
     avalon.config({
         loader: true
     })
-    var msSelector = "[ms-controller],[ms-important],[ms-widget]"
     avalon.ready(function() {
-        if (W3C && DOC.querySelectorAll) {
-            var elems = DOC.querySelectorAll(msSelector),
-                    nodes = []
-            for (var i = 0, elem; elem = elems[i++]; ) {
-                if (!elem.__root__) {
-                    var array = elem.querySelectorAll(msSelector)
-                    for (var j = 0, el; el = array[j++]; ) {
-                        el.__root__ = true
+        //IE6-9下这个通常只要1ms,而且没有副作用，不会发出请求，setImmediate如果只执行一次，与setTimeout一样要140ms上下
+        if (window.VBArray && !window.setImmediate) {
+            var handlerQueue = []
+            function drainQueue() {
+                var fn = handlerQueue.shift()
+                if (fn) {
+                    fn()
+                    if (handlerQueue.length) {
+                        avalon.nextTick()
                     }
-                    nodes.push(elem)
                 }
             }
-            for (var i = 0, elem; elem = nodes[i++]; ) {
-                avalon.scan(elem)
+            avalon.nextTick = function(callback) {
+                if (typeof callback === "function") {
+                    handlerQueue.push(callback)
+                }
+                var node = DOC.createElement("script")
+                node.onreadystatechange = function() {
+                    drainQueue() //在interactive阶段就触发
+                    node.onreadystatechange = null
+                    head.removeChild(node)
+                    node = null
+                }
+                head.appendChild(node)
             }
-        } else {
-            avalon.scan(DOC.body)
         }
+        avalon.scan(DOC.body)
     })
 })(document)
 /**
