@@ -60,3 +60,4 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 })
 ```
 thanks to  sammy， jquery-address， backbone.js，angular.js
+以后要学习一下 director
