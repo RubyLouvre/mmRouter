@@ -89,6 +89,9 @@ define(["mmHistory"], function(avalon) {
     }
     function parseQuery(path) {
         var array = path.split("#"), query = {}, tail = array[1];
+        if(array.length==1 && array[0].indexOf('?')>-1){
+            tail = array[0], array[0] = array[0].split('?')[0];
+        }
         if (tail) {
             var index = tail.indexOf("?");
             if (index > 0) {
