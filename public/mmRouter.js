@@ -58,6 +58,7 @@ define(["mmHistory"], function() {
             } : {}
             obj.regexp = regexp
             obj.names = names
+            obj.templates = {}
             obj.callback = obj.callback || avalon.noop
             obj.view = typeof obj.view === "string" ? obj.view : ""
             array.push(obj)
@@ -80,13 +81,12 @@ define(["mmHistory"], function() {
                 }
                 params[ route.names[i] || i  ] = args[i]
             }
-            var a = avalon.mix(route, {
+            return avalon.mix(route, {
                 query: query,
                 args: args,
                 params: params,
                 path: path
             })
-            return a
         },
         route: function(method, path, query) {//判定当前URL与预定义的路由规则是否符合
             path = path.trim()
@@ -104,7 +104,7 @@ define(["mmHistory"], function() {
             setCookie("msLastPath", path)
         },
         navigate: function(url) {//传入一个URL，触发预定义的回调
-            // routeWithQuery --> router --> _extractParameters
+            // routeWithQuery --> route --> _extractParameters
             var match = this.routeWithQuery("GET", url)
             if (match) {
                 var element = match.element = avalon.views[match.view]
@@ -127,13 +127,19 @@ define(["mmHistory"], function() {
                     match.callback.apply(match, match.args)
                 }
                 if (element) {
-                    if (match.template || match.template === "") {
-                        callback()
-                    } else if (match.templateUrl || match.templateUrl === "") {
-                        avalon.require("text!" + get(match, "templateUrl"), function(template) {
-                            match.template = template
+                    if (match.templateUrl || match.templateUrl === "") {
+                        url = get(match, "templateUrl")
+                        if (match.templates[url]) {
+                            match.template = match.templates[url]
                             callback()
-                        })
+                        } else {
+                            avalon.require("text!" + url, function(template) {
+                                match.template = match.templates[url] = template
+                                callback()
+                            })
+                        }
+                    } else if (match.template || match.template === "") {
+                        callback()
                     }
                 } else {
                     match.callback.apply(match, match.args)
