@@ -1,0 +1,19 @@
+<div>
+    <table ms-controller="contacts">
+        <tr>
+            <td>
+                <ul>
+                    <li>
+                        <a href="#!/contacts">所有联系人</a>
+                    </li>
+                    <li ms-repeat="contacts" >
+                        <a  ms-href="#!/contacts/{{el.id}}">{{el.name}}</a>
+                    </li>
+                </ul>
+            </td>
+            <td ms-view>
+
+            </td>
+        </tr>
+    </table>
+</div>

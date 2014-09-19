@@ -9,7 +9,7 @@
 
         </script>
         <script>
-            require(["ready!", "mmRouter"], function() {
+            require(["ready!", "mmState"], function() {
                 var model = avalon.define("test", function(vm) {
                     vm.hash = function(a, e) {
                         location.hash = a
@@ -38,11 +38,35 @@
                                 '</ul>')
                     })
                 })
+
+                avalon.state("contacts", {
+                    controller: "test",
+                    abstract: true,
+                    url: "/contacts",
+                    templateUrl: "contacts.html",
+                    callback: function() {
+                        if (!avalon.vmodels.contacts) {
+                            avalon.define({
+                                $id: "contacts",
+                                contacts: [
+                                    {id: 1, name: "司徒正美"}, {id: 2, name: "清风火羽"}
+                                ]
+                            })
+                        }
+                    }
+                })
+                avalon.state("contacts.list", {
+                    controller: "test",
+                    url: "",
+                    templateUrl: "contacts.list.html",
+                })
                 avalon.history.start({
-                    basepath: "/avalon"
+                    basepath: "/mmRouter"
                 })
                 avalon.scan()
             })
+
+
 
 //http://angular-ui.github.io/ui-router/sample/#/contacts/42
         </script>
@@ -51,7 +75,10 @@
     </head>
     <body>
         <div ms-controller="test">
-            <a href="#!/about">about</a>
+            <div>
+                <a href="#!/">mmState</a>  <a href="#!/contacts">contacts</a>  <a href="#!/about">about</a>
+            </div>
+
             <div ms-view></div>
         </div>
 

@@ -101,12 +101,12 @@ define(["mmHistory"], function() {
                                     val = value
                                 }
                             }
-
                             args[j] = params[key.name] = val
                         }
                     }
 
-                    return el.callback.apply(el, args)
+                    return  el.callback.apply(el, args)
+
                 }
             }
             if (this.errorback) {
@@ -194,103 +194,7 @@ define(["mmHistory"], function() {
         }
     }
 
-    var findNode = function(str) {
-        var match = str.match(ravalon)
-        var all = document.getElementsByTagName(match[1] || "*")
-        for (var i = 0, el; el = all[i++]; ) {
-            if (el.getAttribute(match[2]) === match[3]) {
-                return el
-            }
-        }
-    }
-    var ravalon = /(\w+)\[(avalonctrl)="(\d+)"\]/
-
-    function getViews(ctrl) {
-        var v = avalon.vmodels[ctrl]
-        var expr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
-        var nodes = []
-        if (expr) {
-            if (document.querySelectorAll) {
-                nodes = document.querySelectorAll(expr + " [ms-view]")
-            } else {
-                var root = findNode(expr)
-                if (root) {
-                    nodes = Array.prototype.filter.call(root.getElementsByTagName("*"), function(node) {
-                        return typeof node.getAttribute("ms-view") === "string"
-                    })
-                }
-            }
-        }
-        return nodes
-    }
-    function getNamedView(nodes, name) {
-        for (var i = 0, el; el = nodes[i++]; ) {
-            if (el.getAttribute("ms-view") === name) {
-                return el
-            }
-        }
-    }
-
-    function fromString(template, params) {
-        return typeof template === "function" ? template(params) : template
-    }
-    function fromUrl(url, params) {
-        if (typeof url === "function")
-            url = url(params)
-        if (url == null)
-            return null
-        var reject, resolve
-        var promise = new Promise(function(a, b) {
-            a = resolve, b = reject
-        })
-        var xhr = getXHR()
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                var status = xhr.status;
-                if (status > 399 && status < 600) {
-                    reject(new Error(url + " 对应资源不存在或没有开启 CORS"))
-                } else {
-                    resolve(xhr.responseText)
-                }
-            }
-        }
-        xhr.open("GET", url, true)
-        if ("withCredentials" in xhr) {
-            xhr.withCredentials = true
-        }
-        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
-        xhr.send()
-        return promise
-    }
-    function fromProvider(fn, params) {
-        return typeof fn === "function" ? fn(params) : fn
-    }
-    function fromConfig(config, params) {
-        return config.template ? fromString(config.template, params) :
-                config.templateUrl ? fromUrl(config.templateUrl, params) :
-                config.templateProvider ? fromProvider(config.templateProvider, params) : null
-    }
-    avalon.state = function(name, opts) {
-        opts.state = name
-        avalon.router.get(opts.url, function() {
-            var ctrl = opts.controller
-            // var vmodel = avalon.vmodels[ctrl]
-            var views = getViews(ctrl)
-            if (!opts.views) {
-                var node = getNamedView(views, "")
-                if (node) {
-                    var a = fromConfig(opts, this.params)
-                    if (typeof a === "string") {
-                        avalon.innerHTML(node, a)
-                    } else if (a && a.then) {
-                        a.then(function(s) {
-                            avalon.innerHTML(node, s)
-                        })
-                    }
-                }
-            }
-        }, opts)
-    }
+  
 
     function escapeCookie(value) {
         return String(value).replace(/[,;"\\=\s%]/g, function(character) {
