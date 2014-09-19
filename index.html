@@ -19,8 +19,9 @@
                         params.time = avalon.filters.date(params.time, "yyyy年M月dd日")
                     }
                     model.params = params
-                    model.args = "[" + [].slice.call(arguments).join(",") + "]"
                     model.query = this.query
+                    model.args = "[" + [].slice.call(arguments, 0) + "]"
+
                 }
                 avalon.router.get("/aaa/", callback)
                 avalon.router.get("/bbb", callback)
