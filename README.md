@@ -3,11 +3,6 @@ mmRouter
 
 avalon的三柱臣之一（ 路由，动画，AJAX）
 
-<h3>如何运行GITHUB中的例子（不包括avalon_spa_example.rar）</h3>
-需要执行npm install命令，安装Express 3.x 和它的依赖，location:3000
-
-<h3>如何avalon_spa_example.rar示例</h3>
-这是一个没有后台的SPA例子，请解压后，安装netBeans，新建项目，选择“基于现有源代码的HTML5应用程序”，指定解压目录， 然后点IDE的运行
 
 <h3>路由器的相关API</h3>
 http://rubylouvre.github.io/mvvm/avalon.router.html
@@ -54,7 +49,7 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
     avalon.history.start({
     basepath: "/mvvm"
     })
-     avalon.router.navigate("/aaa")
+    avalon.router.navigate("/aaa")
     avalon.scan()
 
 })
