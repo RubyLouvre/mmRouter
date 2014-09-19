@@ -26,8 +26,9 @@ define(["mmRouter"], function() {
                         args[j] = params[key.name] = val
                     }
                 }
+
                 if (el.state) {
-                    avalon.transitionTo(avalon.state.current, el)
+                    mmState.transitionTo(mmState.currentState, el, args)
                 } else {
                     el.callback.apply(el, args)
                 }
@@ -126,9 +127,11 @@ define(["mmRouter"], function() {
 
     function getParent(state) {
         var match = state.match(/([\.\w]+)\./) || ["", ""]
-        var parentState = match[0]
+        var parentState = match[1]
+
         if (parentState) {
             var array = avalon.router.routingTable.get
+
             for (var i = 0, el; el = array[i++]; ) {
                 if (el.state == parentState) {
                     return el
@@ -137,6 +140,45 @@ define(["mmRouter"], function() {
             throw new Error("必须先定义[" + parentState + "]")
         }
     }
+    var mmState = {
+        currentState: null,
+        transitionTo: function(fromState, toState, args) {
+
+            if (!fromState) {
+                if (toState.parent) {
+                    var promise = toState.parent.apply(toState.parent, args)
+                }
+                function then() {
+                    toState.callback.apply(toState, args)
+                    mmState.currentState = toState
+                }
+                if (promise) {
+                    promise.then(then)
+                } else {
+                    then()
+                }
+
+            } else {
+                var states = [], parentState = toState
+                while (parentState = parentState.parent) {
+                    if (parentState !== fromState) {
+                        states.push(parentState)
+                    }
+                }
+                states.push(toState)
+                var out = new Promise(function(resolve) {
+                    resolve()
+                })
+                states.forEach(function(state) {
+                    out = out.then(function() {
+                        return  state.callback.apply(state, args)
+                    })
+                })
+            }
+
+        }
+    }
+
     /*
      * 
      * state： 指定当前状态名
@@ -151,6 +193,7 @@ define(["mmRouter"], function() {
             opts.url = parent.url + opts.url
             opts.parent = parent
         }
+
         opts.state = name
         var callback = typeof opts.callback == "function" ? opts.callback : null
         avalon.router.get(opts.url, function() {
@@ -158,16 +201,19 @@ define(["mmRouter"], function() {
             var that = this, args = arguments
             var vmodel = avalon.vmodels[ctrl]
             var views = getViews(ctrl)
+           // console.log(views)
             if (!opts.views) {
                 var node = getNamedView(views, "")
+                // console.log(node)
                 if (node) {
-                    var a = fromConfig(opts, this.params)
-                    if (a && a.then) {
-                        a.then(function(s) {
+                    var promise = fromConfig(opts, this.params)
+                    if (promise && promise.then) {
+                        promise.then(function(s) {
                             avalon.innerHTML(node, s)
                             callback && callback.apply(that, args)
                             avalon.scan(node, vmodel)
                         })
+                        return promise
                     }
                 }
             }
