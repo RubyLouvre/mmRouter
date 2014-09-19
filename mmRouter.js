@@ -27,17 +27,15 @@ define(["mmHistory"], function() {
         }
     }
 
-
+    var placeholder = /([:*])(\w+)|\{(\w+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g
     Router.prototype = {
         error: function(callback) {
             this.errorback = callback
         },
         _pathToRegExp: function(pattern, opts) {
-            var keys = opts.keys = []
-
-            var placeholder = /([:*])(\w+)|\{(\w+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g,
-                    compiled = '^', last = 0, m, name, regexp, segment,
-                    segments = opts.segments = []
+            var keys = opts.keys = [],
+                    segments = opts.segments = [],
+                    compiled = '^', last = 0, m, name, regexp, segment;
 
             while ((m = placeholder.exec(pattern))) {
                 name = m[2] || m[3]; // IE[78] returns '' for unmatched groups instead of null
@@ -59,21 +57,19 @@ define(["mmHistory"], function() {
             segment = pattern.substring(last);
             compiled += quoteRegExp(segment) + (opts.strict ? opts.last : "\/?") + '$';
             segments.push(segment);
-          
             opts.regexp = new RegExp(compiled, opts.caseInsensitive ? 'i' : undefined);
             return opts
 
         },
         //添加一个路由规则
-        add: function(method, path, callback) {
+        add: function(method, path, callback, opts) {
 
             var array = this.routingTable[method.toLowerCase()]
             if (path.charAt(0) !== "/") {
                 throw "path必须以/开头"
             }
-            var opts = {
-                callback: callback
-            }
+            opts = opts || {}
+            opts.callback = callback
             if (path.length > 2 && path.charAt(path.length - 1) === "/") {
                 path = path.slice(0, -1)
                 opts.last = "/"
@@ -85,7 +81,7 @@ define(["mmHistory"], function() {
             path = path.trim()
             var array = this.routingTable[method]
             for (var i = 0, el; el = array[i++]; ) {
-                var args =path.match(el.regexp)
+                var args = path.match(el.regexp)
                 if (args) {
                     el.query = query || {}
                     el.path = path
@@ -127,6 +123,16 @@ define(["mmHistory"], function() {
             var parsed = parseQuery(hash)
             this.route("get", parsed.path, parsed.query)
         },
+        /* *
+         `'/hello/'` - 匹配'/hello/'或'/hello'
+         `'/user/:id'` - 匹配 '/user/bob' 或 '/user/1234!!!' 或 '/user/' 但不匹配 '/user' 与 '/user/bob/details'
+         `'/user/{id}'` - 同上
+         `'/user/{id:[^/]*}'` - 同上
+         `'/user/{id:[0-9a-fA-F]{1,8}}'` - 要求ID匹配/[0-9a-fA-F]{1,8}/这个子正则
+         `'/files/{path:.*}'` - Matches any URL starting with '/files/' and captures the rest of the
+         path into the parameter 'path'.
+         `'/files/*path'` - ditto.
+         */
         // avalon.router.get("/ddd/:dddID/",callback)
         // avalon.router.get("/ddd/{dddID}/",callback)
         // avalon.router.get("/ddd/{dddID:[0-9]{4}}/",callback)
@@ -137,7 +143,7 @@ define(["mmHistory"], function() {
             date: {
                 pattern: "[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[1-2][0-9]|3[0-1])",
                 decode: function(val) {
-                    return new Date(val.replace(/\-/g,"/"))
+                    return new Date(val.replace(/\-/g, "/"))
                 }
             },
             string: {
@@ -160,8 +166,8 @@ define(["mmHistory"], function() {
 
 
     "get,put,delete,post".replace(avalon.rword, function(method) {
-        return  Router.prototype[method] = function(path, fn) {
-            this.add(method, path, fn)
+        return  Router.prototype[method] = function(a, b, c) {
+            this.add(method, a, b, c)
         }
     })
     function quoteRegExp(string, pattern, isOptional) {
@@ -180,12 +186,110 @@ define(["mmHistory"], function() {
     }
 
     if (supportLocalStorage()) {
-        Router.prototype.getLatelyPath = function() {
+        Router.prototype.getLastPath = function() {
             return localStorage.getItem("msLastPath")
         }
-        Router.prototype.setLatelyPath = function(path) {
+        Router.prototype.setLastPath = function(path) {
             localStorage.setItem("msLastPath", path)
         }
+    }
+
+    var findNode = function(str) {
+        var match = str.match(ravalon)
+        var all = document.getElementsByTagName(match[1] || "*")
+        for (var i = 0, el; el = all[i++]; ) {
+            if (el.getAttribute(match[2]) === match[3]) {
+                return el
+            }
+        }
+    }
+    var ravalon = /(\w+)\[(avalonctrl)="(\d+)"\]/
+
+    function getViews(ctrl) {
+        var v = avalon.vmodels[ctrl]
+        var expr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
+        var nodes = []
+        if (expr) {
+            if (document.querySelectorAll) {
+                nodes = document.querySelectorAll(expr + " [ms-view]")
+            } else {
+                var root = findNode(expr)
+                if (root) {
+                    nodes = Array.prototype.filter.call(root.getElementsByTagName("*"), function(node) {
+                        return typeof node.getAttribute("ms-view") === "string"
+                    })
+                }
+            }
+        }
+        return nodes
+    }
+    function getNamedView(nodes, name) {
+        for (var i = 0, el; el = nodes[i++]; ) {
+            if (el.getAttribute("ms-view") === name) {
+                return el
+            }
+        }
+    }
+
+    function fromString(template, params) {
+        return typeof template === "function" ? template(params) : template
+    }
+    function fromUrl(url, params) {
+        if (typeof url === "function")
+            url = url(params)
+        if (url == null)
+            return null
+        var reject, resolve
+        var promise = new Promise(function(a, b) {
+            a = resolve, b = reject
+        })
+        var xhr = getXHR()
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                var status = xhr.status;
+                if (status > 399 && status < 600) {
+                    reject(new Error(url + " 对应资源不存在或没有开启 CORS"))
+                } else {
+                    resolve(xhr.responseText)
+                }
+            }
+        }
+        xhr.open("GET", url, true)
+        if ("withCredentials" in xhr) {
+            xhr.withCredentials = true
+        }
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+        xhr.send()
+        return promise
+    }
+    function fromProvider(fn, params) {
+        return typeof fn === "function" ? fn(params) : fn
+    }
+    function fromConfig(config, params) {
+        return config.template ? fromString(config.template, params) :
+                config.templateUrl ? fromUrl(config.templateUrl, params) :
+                config.templateProvider ? fromProvider(config.templateProvider, params) : null
+    }
+    avalon.state = function(name, opts) {
+        opts.state = name
+        avalon.router.get(opts.url, function() {
+            var ctrl = opts.controller
+            // var vmodel = avalon.vmodels[ctrl]
+            var views = getViews(ctrl)
+            if (!opts.views) {
+                var node = getNamedView(views, "")
+                if (node) {
+                    var a = fromConfig(opts, this.params)
+                    if (typeof a === "string") {
+                        avalon.innerHTML(node, a)
+                    } else if (a && a.then) {
+                        a.then(function(s) {
+                            avalon.innerHTML(node, s)
+                        })
+                    }
+                }
+            }
+        }, opts)
     }
 
     function escapeCookie(value) {
