@@ -1,10 +1,11 @@
 define(["mmRouter"], function() {
-    avalon.router.route = function(method, path, query) {//判定当前URL与预定义的路由规则是否符合
+    //重写mmRouter中的route方法     
+    avalon.router.route = function(method, path, query) {
         path = path.trim()
         var array = this.routingTable[method]
-        for (var i = 0, el; el = array[i++]; ) {
+        for (var i = 0, el; el = array[i++]; ) {//el为一个个状态对象，状态对象的callback总是返回一个Promise
             var args = path.match(el.regexp)
-            if (args && el.abstract !== true) {
+            if (args && el.abstract !== true) {//不能是抽象状态
                 el.query = query || {}
                 el.path = path
                 var params = el.params = {}
@@ -26,7 +27,6 @@ define(["mmRouter"], function() {
                         args[j] = params[key.name] = val
                     }
                 }
-
                 if (el.state) {
                     mmState.transitionTo(mmState.currentState, el, args)
                 } else {
@@ -68,6 +68,7 @@ define(["mmRouter"], function() {
         }
         return nodes
     }
+
     function getNamedView(nodes, name) {
         for (var i = 0, el; el = nodes[i++]; ) {
             if (el.getAttribute("ms-view") === name) {
@@ -75,9 +76,7 @@ define(["mmRouter"], function() {
             }
         }
     }
-    var getXHR = function() {
-        return new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP")
-    }
+
     function fromString(template, params) {
         var promise = new Promise(function(resolve, reject) {
             var str = typeof template === "function" ? template(params) : template
@@ -89,10 +88,14 @@ define(["mmRouter"], function() {
         })
         return promise
     }
+    var getXHR = function() {
+        return new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP")
+    }
     function fromUrl(url, params) {
         var promise = new Promise(function(resolve, reject) {
-            if (typeof url === "function")
+            if (typeof url === "function") {
                 url = url(params)
+            }
             if (typeof url !== "string") {
                 return reject(new Error("templateUrl必须对应一个URL"))
             }
@@ -128,12 +131,10 @@ define(["mmRouter"], function() {
     function getParent(state) {
         var match = state.match(/([\.\w]+)\./) || ["", ""]
         var parentState = match[1]
-
         if (parentState) {
             var array = avalon.router.routingTable.get
-
             for (var i = 0, el; el = array[i++]; ) {
-                if (el.state == parentState) {
+                if (el.state === parentState) {
                     return el
                 }
             }
@@ -146,7 +147,8 @@ define(["mmRouter"], function() {
 
             if (!fromState) {
                 if (toState.parent) {
-                    var promise = toState.parent.apply(toState.parent, args)
+              
+                    var promise = toState.parent.callback.apply(toState.parent, args)
                 }
                 function then() {
                     toState.callback.apply(toState, args)
@@ -178,7 +180,21 @@ define(["mmRouter"], function() {
 
         }
     }
-
+    //用于收集可用于扫描的vmodels
+    function getVModels(opts) {
+        var array = []
+        function getVModel(opts, array) {
+            var ctrl = opts.controller
+            if (avalon.vmodels[ctrl]) {
+                avalon.Array.ensure(array, avalon.vmodels[ctrl])
+            }
+            if (opts.parent) {
+                getVModel(opts.parent, array)
+            }
+        }
+        getVModel(opts, array)
+        return array
+    }
     /*
      * 
      * state： 指定当前状态名
@@ -195,13 +211,13 @@ define(["mmRouter"], function() {
         }
 
         opts.state = name
-        var callback = typeof opts.callback == "function" ? opts.callback : null
+        var callback = typeof opts.callback === "function" ? opts.callback : null
         avalon.router.get(opts.url, function() {
             var ctrl = opts.controller
             var that = this, args = arguments
-            var vmodel = avalon.vmodels[ctrl]
+
             var views = getViews(ctrl)
-           // console.log(views)
+            // console.log(views)
             if (!opts.views) {
                 var node = getNamedView(views, "")
                 // console.log(node)
@@ -211,7 +227,8 @@ define(["mmRouter"], function() {
                         promise.then(function(s) {
                             avalon.innerHTML(node, s)
                             callback && callback.apply(that, args)
-                            avalon.scan(node, vmodel)
+                            //     
+                            avalon.scan(node, getVModels(opts))
                         })
                         return promise
                     }
