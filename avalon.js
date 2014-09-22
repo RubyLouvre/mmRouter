@@ -1749,7 +1749,7 @@
             }
         }
     }
-    var ravalon = /(\w+)\[(avalonctrl)="(\d+)"\]/
+    var ravalon = /(\w+)\[(avalonctrl)="(\S+)"\]/
     var findNode = document.querySelector ? function(str) {
         return  document.querySelector(str)
     } : function(str) {
@@ -1823,7 +1823,7 @@
                             remove = true
                         }
                     }
-                } else if (fn.type === "if") {
+                } else if (fn.type === "if" ||  fn.node === null) {
                     remove = true
                 }
                 if (remove) { //如果它没有在DOM树
@@ -1840,7 +1840,7 @@
                     fn.apply(0, args) //强制重新计算自身
                 } else if (fn.getter) {
                     fn.handler.apply(fn, args) //处理监控数组的方法
-                } else {
+                } else if(fn.node || fn.element){
                     var fun = fn.evaluator || noop
                     fn.handler(fun.apply(0, fn.args || []), el, fn)
                 }
@@ -1896,12 +1896,12 @@
             }
             //ms-important不包含父VM，ms-controller相反
             vmodels = node === b ? [newVmodel] : [newVmodel].concat(vmodels)
-            elem.removeAttribute(node.name) //removeAttributeNode不会刷新[ms-controller]样式规则
-            var id = setTimeout("1")
+            var name = node.name
+            elem.removeAttribute(name) //removeAttributeNode不会刷新[ms-controller]样式规则
 
-            elem.setAttribute("avalonctrl", id + "")
-            newVmodel.$events.expr = elem.tagName + '[avalonctrl="' + id + '"]'
-            avalon(elem).removeClass(node.name)
+            elem.setAttribute("avalonctrl", node.value)
+            newVmodel.$events.expr = elem.tagName + '[avalonctrl="' + node.value + '"]'
+            avalon(elem).removeClass(name)
 
         }
         scanAttr(elem, vmodels) //扫描特性节点
@@ -2062,6 +2062,7 @@
             try {
                 elem.patchRepeat = ""
                 elem.removeAttribute("patchRepeat")
+                elem.removeAttribute("avalonctrl")
             } catch (e) {
             }
         }

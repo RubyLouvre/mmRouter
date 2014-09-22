@@ -1,8 +1,9 @@
-define(["mmRouter"], function() {
-    //重写mmRouter中的route方法     
+define("mmState", ["mmRouter"], function() {
+//重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query) {
         path = path.trim()
         var array = this.routingTable[method]
+
         for (var i = 0, el; el = array[i++]; ) {//el为一个个状态对象，状态对象的callback总是返回一个Promise
             var args = path.match(el.regexp)
             if (args && el.abstract !== true) {//不能是抽象状态
@@ -39,35 +40,65 @@ define(["mmRouter"], function() {
             this.errorback()
         }
     }
-    var findNode = function(str) {
-        var match = str.match(ravalon)
-        var all = document.getElementsByTagName(match[1] || "*")
-        for (var i = 0, el; el = all[i++]; ) {
-            if (el.getAttribute(match[2]) === match[3]) {
-                return el
+
+    //得到所有要处理的视图容器
+    function getViews(ctrl, name) {
+        var v = avalon.vmodels[ctrl]
+        var firstExpr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
+        var otherExpr = []
+        name.split(".").forEach(function() {
+            otherExpr.push("[ms-view]")
+        })
+
+        if (document.querySelectorAll) {
+            return document.querySelectorAll(firstExpr + " " + otherExpr.join(" "))
+        } else {
+            var seeds = Array.prototype.filter.call(document.getElementsByTagName("*"), function(node) {
+                return typeof node.getAttribute("ms-view") === "string"
+            })
+            while (otherExpr.length > 1) {
+                otherExpr.pop()
+                seeds = matchSelectors(seeds, function(node) {
+                    return typeof node.getAttribute("ms-view") === "string"
+                })
             }
+            seeds = matchSelectors(seeds, function(node) {
+                return typeof node.getAttribute("ms-controller") === ctrl
+            })
+            return seeds.map(function(el) {
+                return el.node
+            })
         }
     }
-    var ravalon = /(\w+)\[(avalonctrl)="(\d+)"\]/
+    function  matchSelectors(array, match) {
+        for (var i = 0, n = array.length; i < n; i++) {
+            matchSelector(i, array, match)
+        }
+        return array.filter(function(el) {
+            return el
+        })
+    }
 
-    function getViews(ctrl) {
-        var v = avalon.vmodels[ctrl]
-        var expr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
-        var nodes = []
-        if (expr) {
-            if (document.querySelectorAll) {
-                nodes = document.querySelectorAll(expr + " [ms-view]")
-            } else {
-                var root = findNode(expr)
-                if (root) {
-                    nodes = Array.prototype.filter.call(root.getElementsByTagName("*"), function(node) {
-                        return typeof node.getAttribute("ms-view") === "string"
-                    })
+    function matchSelector(i, array, match) {
+        var parent = array[i]
+        var node = parent
+        if (parent.node) {
+            parent = parent.parent
+            node = parent.node
+        }
+        while (parent) {
+            if (match(parent)) {
+                return array[i] = {
+                    node: node,
+                    parent: parent
                 }
             }
+            parent = parent.parentNode
         }
-        return nodes
+        array[i] = false
     }
+
+
 
     function getNamedView(nodes, name) {
         for (var i = 0, el; el = nodes[i++]; ) {
@@ -144,40 +175,31 @@ define(["mmRouter"], function() {
     var mmState = {
         currentState: null,
         transitionTo: function(fromState, toState, args) {
-
+            mmState.currentState = toState
+            var states = []
+            var t = toState
             if (!fromState) {
-                if (toState.parent) {
-              
-                    var promise = toState.parent.callback.apply(toState.parent, args)
+                while (t) {
+                    states.push(t)
+                    t = t.parent
                 }
-                function then() {
-                    toState.callback.apply(toState, args)
-                    mmState.currentState = toState
-                }
-                if (promise) {
-                    promise.then(then)
-                } else {
-                    then()
-                }
-
+            } else if (fromState === toState) {
+                states.push(t)
             } else {
-                var states = [], parentState = toState
-                while (parentState = parentState.parent) {
-                    if (parentState !== fromState) {
-                        states.push(parentState)
-                    }
+                while (t && t !== fromState) {
+                    states.push(t)
+                    t = t.parent
                 }
-                states.push(toState)
-                var out = new Promise(function(resolve) {
-                    resolve()
-                })
-                states.forEach(function(state) {
-                    out = out.then(function() {
-                        return  state.callback.apply(state, args)
-                    })
-                })
             }
-
+            states.reverse();
+            var out = new Promise(function(resolve) {
+                resolve()
+            })
+            states.forEach(function(state) {
+                out = out.then(function() {
+                    return  state.callback.apply(state, args)
+                })
+            })
         }
     }
     //用于收集可用于扫描的vmodels
@@ -196,12 +218,13 @@ define(["mmRouter"], function() {
         return array
     }
     /*
-     * 
+     * 对 avalon.router.get 进行重新封装
      * state： 指定当前状态名
      * controller： 指定当前所在的VM的名字
      * template: 指定当前模板
      * parent: 父状态对象
-     * 
+     * views: 允许同时处理多个模板
+     * abstract:
      */
     avalon.state = function(name, opts) {
         var parent = getParent(name)
@@ -210,24 +233,26 @@ define(["mmRouter"], function() {
             opts.parent = parent
         }
 
+        var vmodes = getVModels(opts)
+        var ctrl = vmodes[vmodes.length - 1].$id
+
         opts.state = name
-        var callback = typeof opts.callback === "function" ? opts.callback : null
+        var callback = typeof opts.callback === "function" ? opts.callback : avalon.noop
         avalon.router.get(opts.url, function() {
-            var ctrl = opts.controller
+            //  var ctrl = opts.controller
             var that = this, args = arguments
 
-            var views = getViews(ctrl)
-            // console.log(views)
+            var views = getViews(ctrl, name)
+
             if (!opts.views) {
                 var node = getNamedView(views, "")
-                // console.log(node)
                 if (node) {
                     var promise = fromConfig(opts, this.params)
                     if (promise && promise.then) {
                         promise.then(function(s) {
                             avalon.innerHTML(node, s)
-                            callback && callback.apply(that, args)
-                            //     
+
+                            callback.apply(that, args)
                             avalon.scan(node, getVModels(opts))
                         })
                         return promise

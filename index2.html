@@ -46,12 +46,51 @@
                     templateUrl: "contacts.html",
                     callback: function() {
                         if (!avalon.vmodels.contacts) {
-                            avalon.define({
+                            var vmodel = avalon.define({
                                 $id: "contacts",
                                 contacts: [
-                                    {id: 1, name: "司徒正美"}, {id: 2, name: "清风火羽"}
-                                ]
+                                    {id: 1,
+                                        name: "司徒正美",
+                                        items: [
+                                            {
+                                                "id": "a",
+                                                "type": "phone number",
+                                                "value": "555-1234-1234"
+                                            },
+                                            {
+                                                "id": "b",
+                                                "type": "email",
+                                                "value": "alice@mailinator.com"
+                                            }
+                                        ]
+
+                                    }, {id: 2,
+                                        name: "清风火羽",
+                                        "items": [
+                                            {
+                                                "id": "a",
+                                                "type": "blog",
+                                                "value": "http://bob.blogger.com"
+                                            },
+                                            {
+                                                "id": "b",
+                                                "type": "fax",
+                                                "value": "555-999-9999"
+                                            }
+                                        ]
+
+                                    }
+                                ],
+                                id: NaN,
+                                contact: {},
+                                item: {}
                             })
+                            vmodel.$watch("id", function(a) {
+                                vmodel.contact = (vmodel.contacts.filter(function(el) {
+                                    return  el.id == a
+                                }) || [{}])[0]
+                            })
+
                         }
                     }
                 })
@@ -59,6 +98,35 @@
                     controller: "contacts",
                     url: "",
                     templateUrl: "contacts.list.html",
+                })
+                avalon.state("contacts.detail", {
+                    controller: "contacts",
+                    url: "/{contactID}",
+                    templateUrl: "contacts.detail.html",
+                    callback: function(a) {
+
+                        avalon.vmodels.contacts.id = a
+                    }
+                })
+                avalon.state("contacts.detail.item", {
+                    controller: "contacts",
+                    url: "/item/{itemID}",
+                    templateUrl: "contacts.detail.item.html",
+                    callback: function() {
+                        var itemID = this.params.itemID
+                        console.log(itemID)
+                        var vmodel = avalon.vmodels.contacts
+                        var el = vmodel.contact
+                        if (el && el.items) {
+                            for (var i = 0, elem; elem = el.items[i++]; ) {
+                                if (elem.id == itemID) {
+                                    vmodel.item = elem;
+                                    break
+                                }
+                            }
+                        }
+
+                    }
                 })
                 avalon.history.start({
                     basepath: "/mmRouter"
@@ -73,9 +141,26 @@
 
 
     </head>
+    <style>
+        .header{
+            background-color: #ccc;
+            height:40px;
+        }
+        .header a{
+            width:140px;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bolder;
+            font-size: 16px;
+            height:40px;
+            line-height: 40px;
+        }
+
+    </style>
     <body>
         <div ms-controller="test">
-            <div>
+            <div class="header">
                 <a href="#!/">mmState</a>  <a href="#!/contacts">contacts</a>  <a href="#!/about">about</a>
             </div>
 
