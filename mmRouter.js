@@ -85,32 +85,34 @@ define(["mmHistory"], function() {
                 if (args) {
                     el.query = query || {}
                     el.path = path
-                    var params = el.params = {}
+                    el.params = {}
                     var keys = el.keys
                     args.shift()
                     if (keys.length) {
-                        for (var j = 0, jn = keys.length; j < jn; j++) {
-                            var key = keys[j]
-                            var value = args[j] || ""
-                            if (typeof key.decode === "function") {//在这里尝试转换参数的类型
-                                var val = key.decode(value)
-                            } else {
-                                try {
-                                    val = JSON.parse(value)
-                                } catch (e) {
-                                    val = value
-                                }
-                            }
-                            args[j] = params[key.name] = val
-                        }
+                        this._parseArgs(args, el)
                     }
-
                     return  el.callback.apply(el, args)
-
                 }
             }
             if (this.errorback) {
                 this.errorback()
+            }
+        },
+        _parseArgs: function(match, stateObj) {
+            var keys = stateObj.keys
+            for (var j = 0, jn = keys.length; j < jn; j++) {
+                var key = keys[j]
+                var value = match[j] || ""
+                if (typeof key.decode === "function") {//在这里尝试转换参数的类型
+                    var val = key.decode(value)
+                } else {
+                    try {
+                        val = JSON.parse(value)
+                    } catch (e) {
+                        val = value
+                    }
+                }
+                match[j] = stateObj.params[key.name] = val
             }
         },
         getLastPath: function() {
@@ -194,7 +196,7 @@ define(["mmHistory"], function() {
         }
     }
 
-  
+
 
     function escapeCookie(value) {
         return String(value).replace(/[,;"\\=\s%]/g, function(character) {

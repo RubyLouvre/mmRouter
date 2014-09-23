@@ -9,26 +9,12 @@ define("mmState", ["mmRouter"], function() {
             if (args && el.abstract !== true) {//不能是抽象状态
                 el.query = query || {}
                 el.path = path
-                var params = el.params = {}
+                el.params = {}
                 var keys = el.keys
                 args.shift()
                 if (keys.length) {
-                    for (var j = 0, jn = keys.length; j < jn; j++) {
-                        var key = keys[j]
-                        var value = args[j] || ""
-                        if (typeof key.decode === "function") {//在这里尝试转换参数的类型
-                            var val = key.decode(value)
-                        } else {
-                            try {
-                                val = JSON.parse(value)
-                            } catch (e) {
-                                val = value
-                            }
-                        }
-                        args[j] = params[key.name] = val
-                    }
+                    this._parseArgs(args, el)
                 }
-
                 if (el.state) {
                     mmState.transitionTo(mmState.currentState, el, args)
                 } else {
@@ -41,6 +27,25 @@ define("mmState", ["mmRouter"], function() {
             this.errorback()
         }
     }
+
+    avalon.router.go = function(toName, params) {
+        var from = mmState.currentState, to
+        var array = this.routingTable.get
+        for (var i = 0, el; el = array[i++]; ) {
+            if (el.state == toName) {
+                to = el
+                break
+            }
+        }
+        if (to) {
+            avalon.mix(true, to.params, params)
+            var args = to.keys.map(function(el) {
+                return to.params [el.name] || ""
+            })
+            mmState.transitionTo(from, to, args)
+        }
+    }
+ 
 
     //得到所有要处理的视图容器
     function getViews(ctrl, name) {
@@ -131,6 +136,9 @@ define("mmState", ["mmRouter"], function() {
             if (typeof url !== "string") {
                 return reject(new Error("templateUrl必须对应一个URL"))
             }
+            if (avalon.templateCache[url]) {
+                resolve(avalon.templateCache[url])
+            }
             var xhr = getXHR()
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
@@ -138,7 +146,7 @@ define("mmState", ["mmRouter"], function() {
                     if (status > 399 && status < 600) {
                         reject(new Error(url + " 对应资源不存在或没有开启 CORS"))
                     } else {
-                        resolve(xhr.responseText)
+                        resolve(avalon.templateCache[url] = xhr.responseText)
                     }
                 }
             }
@@ -173,6 +181,7 @@ define("mmState", ["mmRouter"], function() {
             throw new Error("必须先定义[" + parentState + "]")
         }
     }
+
     var mmState = {
         currentState: null,
         transitionTo: function(fromState, toState, args) {
@@ -266,7 +275,7 @@ define("mmState", ["mmRouter"], function() {
                     statename = stateName
                 }
                 var nodes = getViews(topCtrlName, statename)
-             //   console.log(topCtrlName, statename, viewname)
+                //   console.log(topCtrlName, statename, viewname)
                 var node = getNamedView(nodes, viewname)
                 if (node) {
                     var promise = fromConfig(view, that.params)
