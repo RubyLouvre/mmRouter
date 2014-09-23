@@ -9,6 +9,7 @@
 
         </script>
         <script>
+            avalon.config({debug: false})
             require(["ready!", "mmState"], function() {
                 var model = avalon.define("test", function(vm) {
                     vm.hash = function(a, e) {
@@ -28,15 +29,22 @@
                 avalon.state("about", {
                     controller: "test",
                     url: "/about",
-                    templateProvider: new Promise(function(fn) {
-                        fn('<p class="lead">UI-Router Resources</p><ul>' +
-                                '<li><a href="https://github.com/angular-ui/ui-router/tree/master/sample">Source for this Sample</a></li>' +
-                                '<li><a href="https://github.com/angular-ui/ui-router">Github Main Page</a></li>' +
-                                '<li><a href="https://github.com/angular-ui/ui-router#quick-start">Quick Start</a></li>' +
-                                '<li><a href="https://github.com/angular-ui/ui-router/wiki">In-Depth Guide</a></li>' +
-                                '<li><a href="https://github.com/angular-ui/ui-router/wiki/Quick-Reference">API Reference</a></li>' +
-                                '</ul>')
-                    })
+                    views: {
+                        "": {
+                            templateProvider: new Promise(function(fn) {
+                                fn('<p class="lead">UI-Router Resources</p><ul>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/tree/master/sample">Source for this Sample</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router">Github Main Page</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router#quick-start">Quick Start</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki">In-Depth Guide</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki/Quick-Reference">API Reference</a></li>' +
+                                        '</ul>')
+                            })
+                        },
+                        "hint@": {
+                            template: "当前状态是about"
+                        }
+                    }
                 })
 
                 avalon.state("contacts", {
@@ -102,35 +110,46 @@
                 avalon.state("contacts.detail", {
                     controller: "contacts",
                     url: "/{contactID}",
-//                    views: {
-//                        "": {
+                    views: {
+                        "": {
                             templateUrl: "contacts.detail.html",
                             resolve: function(a) {
                                 avalon.vmodels.contacts.id = a
                             }
-//                        }
-//                    }
+                        },
+                        'hint@': {
+                            template: "当前状态是contacts.detail"
+                        }
+                    }
 
                 })
                 avalon.state("contacts.detail.item", {
                     controller: "contacts",
                     url: "/item/{itemID}",
-                    templateUrl: "contacts.detail.item.html",
-                    resolve: function() {
-                        var itemID = this.params.itemID
-
-                        var vmodel = avalon.vmodels.contacts
-                        var el = vmodel.contact
-                        if (el && el.items) {
-                            for (var i = 0, elem; elem = el.items[i++]; ) {
-                                if (elem.id == itemID) {
-                                    vmodel.item = elem;
-                                    break
+                    views: {
+                        "": {
+                            templateUrl: "contacts.detail.item.html",
+                            resolve: function() {
+                                var itemID = this.params.itemID
+                                var vmodel = avalon.vmodels.contacts
+                                var el = vmodel.contact
+                                if (el && el.items) {
+                                    for (var i = 0, elem; elem = el.items[i++]; ) {
+                                        if (elem.id == itemID) {
+                                            vmodel.item = elem;
+                                            break
+                                        }
+                                    }
                                 }
-                            }
-                        }
 
+                            }
+
+                        },
+                        'hint@': {
+                            template: "当前状态是contacts.detail.item"
+                        }
                     }
+
                 })
                 avalon.history.start({
                     basepath: "/mmRouter"

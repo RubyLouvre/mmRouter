@@ -228,9 +228,7 @@ define("mmState", ["mmRouter"], function() {
      * resolve: 一个用于生成扫描模板的VM的回调函数
      * abstract: 表示它不参与匹配
      */
-    var rootState = {
-        name: ""
-    }
+
     avalon.state = function(stateName, opts) {
         var parent = getParent(stateName)
         if (parent) {
@@ -247,16 +245,21 @@ define("mmState", ["mmRouter"], function() {
             }
             var promises = []
             avalon.each(viewsOpts, function(name, view) {
-                var match = name.split("@") || ["", ""]
-                var viewname = match[0] || ""
-                var statename = match[1] || stateName
+              if (name.indexOf("@") > 0) {
+                    var match = name.split("@")
+                    var viewname = match[0]
+                    var statename = match[1]
+                } else {
+                    var viewname = name
+                    var statename = stateName
+                }
                 var nodes = getViews(topCtrlName, statename)
                 console.log(topCtrlName, statename, viewname)
                 var node = getNamedView(nodes, viewname)
                 if (node) {
-                    var promise = fromConfig(opts, that.params)
+                    var promise = fromConfig(view, that.params)
                     var cb = typeof view.resolve === "function" ? view.resolve : avalon.noop
-                    avalon.log(cb+"")
+                  
                     if (promise && promise.then) {
                         promise.then(function(s) {
                             avalon.innerHTML(node, s)
