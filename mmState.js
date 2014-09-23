@@ -28,6 +28,7 @@ define("mmState", ["mmRouter"], function() {
                         args[j] = params[key.name] = val
                     }
                 }
+
                 if (el.state) {
                     mmState.transitionTo(mmState.currentState, el, args)
                 } else {
@@ -223,42 +224,51 @@ define("mmState", ["mmRouter"], function() {
      * controller： 指定当前所在的VM的名字
      * template: 指定当前模板
      * parent: 父状态对象
-     * views: 允许同时处理多个模板
-     * abstract:
+     * views: 允许同时处理多个模板 
+     * resolve: 一个用于生成扫描模板的VM的回调函数
+     * abstract: 表示它不参与匹配
      */
-    avalon.state = function(name, opts) {
-        var parent = getParent(name)
+    var rootState = {
+        name: ""
+    }
+    avalon.state = function(stateName, opts) {
+        var parent = getParent(stateName)
         if (parent) {
             opts.url = parent.url + opts.url
             opts.parent = parent
         }
-
         var vmodes = getVModels(opts)
-        var ctrl = vmodes[vmodes.length - 1].$id
-
-        opts.state = name
-        var callback = typeof opts.callback === "function" ? opts.callback : avalon.noop
+        var topCtrlName = vmodes[vmodes.length - 1].$id
+        opts.state = stateName
         avalon.router.get(opts.url, function() {
-            //  var ctrl = opts.controller
             var that = this, args = arguments
-
-            var views = getViews(ctrl, name)
-
-            if (!opts.views) {
-                var node = getNamedView(views, "")
+            var viewsOpts = opts.views ? opts.views : {
+                "": opts
+            }
+            var promises = []
+            avalon.each(viewsOpts, function(name, view) {
+                var match = name.split("@") || ["", ""]
+                var viewname = match[0] || ""
+                var statename = match[1] || stateName
+                var nodes = getViews(topCtrlName, statename)
+                console.log(topCtrlName, statename, viewname)
+                var node = getNamedView(nodes, viewname)
                 if (node) {
-                    var promise = fromConfig(opts, this.params)
+                    var promise = fromConfig(opts, that.params)
+                    var cb = typeof view.resolve === "function" ? view.resolve : avalon.noop
+                    avalon.log(cb+"")
                     if (promise && promise.then) {
                         promise.then(function(s) {
                             avalon.innerHTML(node, s)
-
-                            callback.apply(that, args)
+                            cb.apply(that, args)
                             avalon.scan(node, getVModels(opts))
                         })
-                        return promise
+                        promises.push(promise)
                     }
                 }
-            }
+            })
+            return Promise.all(promises)
+
         }, opts)
         return this
     }

@@ -58,7 +58,6 @@ define(["mmHistory"], function() {
             compiled += quoteRegExp(segment) + (opts.strict ? opts.last : "\/?") + '$';
             segments.push(segment);
             opts.regexp = new RegExp(compiled, opts.caseInsensitive ? 'i' : undefined);
-            console.log(opts)
             return opts
 
         },
