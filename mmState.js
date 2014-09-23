@@ -228,6 +228,11 @@ define("mmState", ["mmRouter"], function() {
      * resolve: 一个用于生成扫描模板的VM的回调函数
      * abstract: 表示它不参与匹配
      */
+    function copyTemplateProperty(newObj, oldObj, name) {
+        newObj[name] = oldObj[name]
+        delete  oldObj[name]
+    }
+
 
     avalon.state = function(stateName, opts) {
         var parent = getParent(stateName)
@@ -238,28 +243,34 @@ define("mmState", ["mmRouter"], function() {
         var vmodes = getVModels(opts)
         var topCtrlName = vmodes[vmodes.length - 1].$id
         opts.state = stateName
+        if (!opts.views) {
+            var view = {}
+            "template,templateUrl,templateProvider,resolve".replace(/\w+/g, function(prop) {
+                copyTemplateProperty(view, opts, prop)
+            })
+            opts.views = {
+                "": view
+            }
+        }
+
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
-            var viewsOpts = opts.views ? opts.views : {
-                "": opts
-            }
             var promises = []
-            avalon.each(viewsOpts, function(name, view) {
-              if (name.indexOf("@") > 0) {
+            avalon.each(opts.views, function(name, view) {
+                if (name.indexOf("@") > 0) {
                     var match = name.split("@")
                     var viewname = match[0]
                     var statename = match[1]
                 } else {
-                    var viewname = name
-                    var statename = stateName
+                    viewname = name || ""
+                    statename = stateName
                 }
                 var nodes = getViews(topCtrlName, statename)
-                console.log(topCtrlName, statename, viewname)
+             //   console.log(topCtrlName, statename, viewname)
                 var node = getNamedView(nodes, viewname)
                 if (node) {
                     var promise = fromConfig(view, that.params)
                     var cb = typeof view.resolve === "function" ? view.resolve : avalon.noop
-                  
                     if (promise && promise.then) {
                         promise.then(function(s) {
                             avalon.innerHTML(node, s)
