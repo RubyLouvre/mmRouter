@@ -36,15 +36,20 @@ define("mmState", ["mmRouter"], function() {
                 break
             }
         }
+     
         if (to) {
-            avalon.mix(true, to.params, params)
+            if(!to.params){
+                to.params = to.parentState ?  to.parentState.params : {}
+            } 
+            avalon.mix(true, to.params, params || {})
             var args = to.keys.map(function(el) {
                 return to.params [el.name] || ""
             })
+            console.log(to)
             mmState.transitionTo(from, to, args)
         }
     }
- 
+
 
     //得到所有要处理的视图容器
     function getViews(ctrl, name) {
@@ -166,7 +171,7 @@ define("mmState", ["mmRouter"], function() {
                 config.templateUrl ? fromUrl(config.templateUrl, params) :
                 config.templateProvider ? fromProvider(config.templateProvider, params) : null
     }
-   //求出当前state对象对应的父state对象
+    //求出当前state对象对应的父state对象
     function getParent(stateName) {
         var match = stateName.match(/([\.\w]+)\./) || ["", ""]
         var parentName = match[1]
@@ -227,7 +232,7 @@ define("mmState", ["mmRouter"], function() {
         return array
     }
     //将template,templateUrl,templateProvider,resolve这四个属性从opts对象拷贝到新生成的view对象上的
-     function copyTemplateProperty(newObj, oldObj, name) {
+    function copyTemplateProperty(newObj, oldObj, name) {
         newObj[name] = oldObj[name]
         delete  oldObj[name]
     }
@@ -258,11 +263,14 @@ define("mmState", ["mmRouter"], function() {
      * abstract:  表示它不参与匹配
      * parentState: 父状态对象（框架内部生成）
      */
-  
+
     avalon.state = function(stateName, opts) {
         var parent = getParent(stateName)
+        if (opts.url === void 0) {
+            opts.abstract = true
+        }
         if (parent) {
-            opts.url = parent.url + opts.url
+            opts.url = parent.url + (opts.url || "")
             opts.parentState = parent
         }
         var vmodes = getVModels(opts)
@@ -278,11 +286,12 @@ define("mmState", ["mmRouter"], function() {
             }
         }
 
+
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
             var promises = []
             avalon.each(opts.views, function(keyname, view) {
-                if (keyname.indexOf("@") > 0) {
+                if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
                     var viewname = match[0]
                     var statename = match[1]
@@ -290,6 +299,7 @@ define("mmState", ["mmRouter"], function() {
                     viewname = keyname || ""
                     statename = stateName
                 }
+              
                 var nodes = getViews(topCtrlName, statename)
                 //   console.log(topCtrlName, statename, viewname)
                 var node = getNamedView(nodes, viewname)
@@ -306,9 +316,11 @@ define("mmState", ["mmRouter"], function() {
                     }
                 }
             })
+
             return Promise.all(promises)
 
         }, opts)
+       
         return this
     }
 })

@@ -34,7 +34,7 @@ define(["mmHistory"], function() {
         },
         _pathToRegExp: function(pattern, opts) {
             var keys = opts.keys = [],
-                    segments = opts.segments = [],
+              //      segments = opts.segments = [],
                     compiled = '^', last = 0, m, name, regexp, segment;
 
             while ((m = placeholder.exec(pattern))) {
@@ -51,19 +51,18 @@ define(["mmHistory"], function() {
                 }
                 keys.push(key)
                 compiled += quoteRegExp(segment, regexp, false)
-                segments.push(segment)
+              //  segments.push(segment)
                 last = placeholder.lastIndex
             }
             segment = pattern.substring(last);
             compiled += quoteRegExp(segment) + (opts.strict ? opts.last : "\/?") + '$';
-            segments.push(segment);
+          //  segments.push(segment);
             opts.regexp = new RegExp(compiled, opts.caseInsensitive ? 'i' : undefined);
             return opts
 
         },
         //添加一个路由规则
         add: function(method, path, callback, opts) {
-
             var array = this.routingTable[method.toLowerCase()]
             if (path.charAt(0) !== "/") {
                 throw "path必须以/开头"
@@ -74,7 +73,6 @@ define(["mmHistory"], function() {
                 path = path.slice(0, -1)
                 opts.last = "/"
             }
-
             avalon.Array.ensure(array, this._pathToRegExp(path, opts))
         },
         //判定当前URL与已有状态对象的路由规则是否符合

@@ -56,8 +56,16 @@
                         if (!avalon.vmodels.contacts) {
                             var vmodel = avalon.define({
                                 $id: "contacts",
+                                $skipArray: ["item"],
+                                edit: function() {
+                                    avalon.router.go("contacts.detail.item.edit")
+                                },
+                                done: function() {
+                                    avalon.router.go("contacts.detail.item")
+                                },
                                 contacts: [
-                                    {id: 1,
+                                    {
+                                        id: 1,
                                         name: "司徒正美",
                                         items: [
                                             {
@@ -72,7 +80,8 @@
                                             }
                                         ]
 
-                                    }, {id: 2,
+                                    }, {
+                                        id: 2,
                                         name: "清风火羽",
                                         "items": [
                                             {
@@ -141,7 +150,6 @@
                                         }
                                     }
                                 }
-
                             }
 
                         },
@@ -150,6 +158,14 @@
                         }
                     }
 
+                })
+
+                avalon.state("contacts.detail.item.edit", {
+                    views: {
+                        "@contacts.detail": {
+                            templateUrl: "contacts.detail.item.edit.html"
+                        }
+                    }
                 })
                 avalon.history.start({
                     basepath: "/mmRouter"
