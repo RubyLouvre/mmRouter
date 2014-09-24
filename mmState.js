@@ -26,7 +26,7 @@ define("mmState", ["mmRouter"], function() {
             this.errorback()
         }
     }
-
+    //跳转到一个已定义状态上，params对参数对象
     avalon.router.go = function(toName, params) {
         var from = mmState.currentState, to
         var states = this.routingTable.get
@@ -42,164 +42,9 @@ define("mmState", ["mmRouter"], function() {
             }
             avalon.mix(true, to.params, params || {})
             var args = to.keys.map(function(el) {
-
                 return to.params [el.name] || ""
             })
-            console.log(args)
             mmState.transitionTo(from, to, args)
-        }
-    }
-
-
-    //得到所有要处理的视图容器
-    function getViews(ctrl, name) {
-        var v = avalon.vmodels[ctrl]
-        var firstExpr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
-        var otherExpr = []
-        name.split(".").forEach(function() {
-            otherExpr.push("[ms-view]")
-        })
-
-        if (document.querySelectorAll) {
-            return document.querySelectorAll(firstExpr + " " + otherExpr.join(" "))
-        } else {
-            var seeds = Array.prototype.filter.call(document.getElementsByTagName("*"), function(node) {
-                return typeof node.getAttribute("ms-view") === "string"
-            })
-            while (otherExpr.length > 1) {
-                otherExpr.pop()
-                seeds = matchSelectors(seeds, function(node) {
-                    return typeof node.getAttribute("ms-view") === "string"
-                })
-            }
-            seeds = matchSelectors(seeds, function(node) {
-                return typeof node.getAttribute("ms-controller") === ctrl
-            })
-            return seeds.map(function(el) {
-                return el.node
-            })
-        }
-    }
-    //找到符合match回调的节点集合
-    function  matchSelectors(array, match) {
-        for (var i = 0, n = array.length; i < n; i++) {
-            matchSelector(i, array, match)
-        }
-        return array.filter(function(el) {
-            return el
-        })
-    }
-    //上面的辅助函数
-    function matchSelector(i, array, match) {
-        var parent = array[i]
-        var node = parent
-        if (parent.node) {
-            parent = parent.parent
-            node = parent.node
-        }
-        while (parent) {
-            if (match(parent)) {
-                return array[i] = {
-                    node: node,
-                    parent: parent
-                }
-            }
-            parent = parent.parentNode
-        }
-        array[i] = false
-    }
-
-
-    function getNamedView(nodes, viewname) {
-        for (var i = 0, el; el = nodes[i++]; ) {
-            if (el.getAttribute("ms-view") === viewname) {
-                return el
-            }
-        }
-    }
-
-    function fromString(template, params) {
-        var promise = new Promise(function(resolve, reject) {
-            var str = typeof template === "function" ? template(params) : template
-            if (typeof str == "string") {
-                resolve(str)
-            } else {
-                reject("template必须对应一个字符串或一个返回字符串的函数")
-            }
-        })
-        return promise
-    }
-    var getXHR = function() {
-        return new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP")
-    }
-    function fromUrl(url, params) {
-        var promise = new Promise(function(resolve, reject) {
-            if (typeof url === "function") {
-                url = url(params)
-            }
-            if (typeof url !== "string") {
-                return reject("templateUrl必须对应一个URL")
-            }
-            if (avalon.templateCache[url]) {
-                return  resolve(avalon.templateCache[url])
-            }
-            var xhr = getXHR()
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    var status = xhr.status;
-                    if (status > 399 && status < 600) {
-                        reject("templateUrl对应资源不存在或没有开启 CORS")
-                    } else {
-                        resolve(avalon.templateCache[url] = xhr.responseText)
-                    }
-                }
-            }
-            xhr.open("GET", url, true)
-            if ("withCredentials" in xhr) {
-                xhr.withCredentials = true
-            }
-            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
-            xhr.send()
-        })
-        return promise
-    }
-    function fromProvider(fn, params) {
-        var promise = new Promise(function(resolve, reject) {
-            if (typeof fn === "function") {
-                var ret = fn(params)
-                if (ret && ret.then) {
-                    resolve(ret)
-                } else {
-                    reject("templateProvider为函数时应该返回一个Promise或thenable对象")
-                }
-            } else if (fn && fn.then) {
-                resolve(fn)
-            } else {
-                reject("templateProvider不为函数时应该对应一个Promise或thenable对象")
-            }
-        })
-        return promise
-    }
-    function fromPromise(config, params) {
-        return config.template ? fromString(config.template, params) :
-                config.templateUrl ? fromUrl(config.templateUrl, params) :
-                config.templateProvider ? fromProvider(config.templateProvider, params) :
-                new Promise(function(resolve, reject) {
-                    reject("必须存在template, templateUrl, templateProvider中的一个")
-                })
-    }
-    //求出当前state对象对应的父state对象
-    function getParent(stateName) {
-        var match = stateName.match(/([\.\w]+)\./) || ["", ""]
-        var parentName = match[1]
-        if (parentName) {
-            var states = avalon.router.routingTable.get
-            for (var i = 0, state; state = states[i++]; ) {
-                if (state.stateName === parentName) {
-                    return state
-                }
-            }
-            throw new Error("必须先定义[" + parentName + "]")
         }
     }
 
@@ -233,7 +78,7 @@ define("mmState", ["mmRouter"], function() {
             })
         }
     }
-    //用于收集可用于扫描的vmodels
+    //【avalon.state】的辅助函数，用于收集可用于扫描的vmodels
     function getVModels(opts) {
         var array = []
         function getVModel(opts, array) {
@@ -248,7 +93,7 @@ define("mmState", ["mmRouter"], function() {
         getVModel(opts, array)
         return array
     }
-    //将template,templateUrl,templateProvider,resolve这四个属性从opts对象拷贝到新生成的view对象上的
+    //将template,templateUrl,templateProvider,onBeforeLoad,onAfterLoad这五个属性从opts对象拷贝到新生成的view对象上的
     function copyTemplateProperty(newObj, oldObj, name) {
         newObj[name] = oldObj[name]
         delete  oldObj[name]
@@ -293,8 +138,7 @@ define("mmState", ["mmRouter"], function() {
             opts.url = parent.url + (opts.url || "")
             opts.parentState = parent
         }
-        var vmodes = getVModels(opts)
-        var topCtrlName = vmodes[vmodes.length - 1].$id
+
         opts.stateName = stateName
         if (!opts.views) {
             var view = {}
@@ -305,12 +149,12 @@ define("mmState", ["mmRouter"], function() {
                 "": view
             }
         }
-
-
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
             var promises = []
             getFn(opts, "onChange").apply(that, args)
+            var vmodes = getVModels(opts)
+            var topCtrlName = vmodes[vmodes.length - 1].$id
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
@@ -329,10 +173,10 @@ define("mmState", ["mmRouter"], function() {
                     promise.then(function(s) {
                         avalon.innerHTML(node, s)
                         getFn(view, "onAfterLoad").call(node, that)
-                        avalon.scan(node, getVModels(opts))
+                        avalon.scan(node, vmodes)
                     }, function(msg) {
                         avalon.log(warnings + " " + msg)
-                       
+
                     })
                     promises.push(promise)
                 } else {
@@ -346,8 +190,162 @@ define("mmState", ["mmRouter"], function() {
 
         return this
     }
-
+    //【avalon.state】的辅助函数，确保返回的是函数
     function getFn(object, name) {
         return typeof object[name] === "function" ? object[name] : avalon.noop
+    }
+    // 【avalon.state】的辅助函数，收集所有要渲染的[ms-view]元素
+    function getViews(ctrl, name) {
+        var v = avalon.vmodels[ctrl]
+        var firstExpr = v && v.$events.expr || "[ms-controller='" + ctrl + "']"
+        var otherExpr = []
+        name.split(".").forEach(function() {
+            otherExpr.push("[ms-view]")
+        })
+        if (document.querySelectorAll) {
+            return document.querySelectorAll(firstExpr + " " + otherExpr.join(" "))
+        } else {
+            var seeds = Array.prototype.filter.call(document.getElementsByTagName("*"), function(node) {
+                return typeof node.getAttribute("ms-view") === "string"
+            })
+            while (otherExpr.length > 1) {
+                otherExpr.pop()
+                seeds = matchSelectors(seeds, function(node) {
+                    return typeof node.getAttribute("ms-view") === "string"
+                })
+            }
+            seeds = matchSelectors(seeds, function(node) {
+                return typeof node.getAttribute("ms-controller") === ctrl
+            })
+            return seeds.map(function(el) {
+                return el.node
+            })
+        }
+    }
+    // 【avalon.state】的辅助函数，从已有集合中寻找匹配[ms-view="viewname"]表达式的元素节点
+    function getNamedView(nodes, viewname) {
+        for (var i = 0, el; el = nodes[i++]; ) {
+            if (el.getAttribute("ms-view") === viewname) {
+                return el
+            }
+        }
+    }
+    // 【getViews】的辅助函数，从array数组中得到匹配match回调的子集，此为一个节点集合
+    function  matchSelectors(array, match) {
+        for (var i = 0, n = array.length; i < n; i++) {
+            matchSelector(i, array, match)
+        }
+        return array.filter(function(el) {
+            return el
+        })
+    }
+    // 【matchSelectors】的辅助函数，判定array[i]及其祖先是否匹配match回调
+    function matchSelector(i, array, match) {
+        var parent = array[i]
+        var node = parent
+        if (parent.node) {
+            parent = parent.parent
+            node = parent.node
+        }
+        while (parent) {
+            if (match(parent)) {
+                return array[i] = {
+                    node: node,
+                    parent: parent
+                }
+            }
+            parent = parent.parentNode
+        }
+        array[i] = false
+    }
+
+    // 【avalon.state】的辅助函数，opts.template的处理函数
+    function fromString(template, params) {
+        var promise = new Promise(function(resolve, reject) {
+            var str = typeof template === "function" ? template(params) : template
+            if (typeof str == "string") {
+                resolve(str)
+            } else {
+                reject("template必须对应一个字符串或一个返回字符串的函数")
+            }
+        })
+        return promise
+    }
+    // 【fromUrl】的辅助函数，得到一个XMLHttpRequest对象
+    var getXHR = function() {
+        return new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP")
+    }
+    // 【avalon.state】的辅助函数，opts.templateUrl的处理函数
+    function fromUrl(url, params) {
+        var promise = new Promise(function(resolve, reject) {
+            if (typeof url === "function") {
+                url = url(params)
+            }
+            if (typeof url !== "string") {
+                return reject("templateUrl必须对应一个URL")
+            }
+            if (avalon.templateCache[url]) {
+                return  resolve(avalon.templateCache[url])
+            }
+            var xhr = getXHR()
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    var status = xhr.status;
+                    if (status > 399 && status < 600) {
+                        reject("templateUrl对应资源不存在或没有开启 CORS")
+                    } else {
+                        resolve(avalon.templateCache[url] = xhr.responseText)
+                    }
+                }
+            }
+            xhr.open("GET", url, true)
+            if ("withCredentials" in xhr) {
+                xhr.withCredentials = true
+            }
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+            xhr.send()
+        })
+        return promise
+    }
+    // 【avalon.state】的辅助函数，opts.templateProvider的处理函数
+    function fromProvider(fn, params) {
+        var promise = new Promise(function(resolve, reject) {
+            if (typeof fn === "function") {
+                var ret = fn(params)
+                if (ret && ret.then) {
+                    resolve(ret)
+                } else {
+                    reject("templateProvider为函数时应该返回一个Promise或thenable对象")
+                }
+            } else if (fn && fn.then) {
+                resolve(fn)
+            } else {
+                reject("templateProvider不为函数时应该对应一个Promise或thenable对象")
+            }
+        })
+        return promise
+    }
+    // 【avalon.state】的辅助函数，将template或templateUrl或templateProvider转换为可用的Promise对象
+    function fromPromise(config, params) {
+        return config.template ? fromString(config.template, params) :
+                config.templateUrl ? fromUrl(config.templateUrl, params) :
+                config.templateProvider ? fromProvider(config.templateProvider, params) :
+                new Promise(function(resolve, reject) {
+                    reject("必须存在template, templateUrl, templateProvider中的一个")
+                })
+    }
+    //【avalon.state】的辅助函数，得到目标状态对象对应的父状态对象
+    function getParent(stateName) {
+        var match = stateName.match(/([\.\w]+)\./) || ["", ""]
+        var parentName = match[1]
+        if (parentName) {
+            var states = avalon.router.routingTable.get
+            for (var i = 0, state; state = states[i++]; ) {
+                if (state.stateName === parentName) {
+                    return state
+                }
+            }
+            throw new Error("必须先定义[" + parentName + "]")
+        }
     }
 })
