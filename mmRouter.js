@@ -77,10 +77,11 @@ define(["mmHistory"], function() {
 
             avalon.Array.ensure(array, this._pathToRegExp(path, opts))
         },
-        route: function(method, path, query) {//判定当前URL与预定义的路由规则是否符合
+        //判定当前URL与已有状态对象的路由规则是否符合
+        route: function(method, path, query) {
             path = path.trim()
-            var array = this.routingTable[method]
-            for (var i = 0, el; el = array[i++]; ) {
+            var states = this.routingTable[method]
+            for (var i = 0, el; el = states[i++]; ) {
                 var args = path.match(el.regexp)
                 if (args) {
                     el.query = query || {}

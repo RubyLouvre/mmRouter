@@ -29,8 +29,8 @@ define("mmState", ["mmRouter"], function() {
 
     avalon.router.go = function(toName, params) {
         var from = mmState.currentState, to
-        var array = this.routingTable.get
-        for (var i = 0, el; el = array[i++]; ) {
+        var states = this.routingTable.get
+        for (var i = 0, el; el = states[i++]; ) {
             if (el.stateName === toName) {
                 to = el
                 break
@@ -171,10 +171,10 @@ define("mmState", ["mmRouter"], function() {
         var match = stateName.match(/([\.\w]+)\./) || ["", ""]
         var parentName = match[1]
         if (parentName) {
-            var array = avalon.router.routingTable.get
-            for (var i = 0, el; el = array[i++]; ) {
-                if (el.stateName === parentName) {
-                    return el
+            var states = avalon.router.routingTable.get
+            for (var i = 0, state; state = states[i++]; ) {
+                if (state.stateName === parentName) {
+                    return state
                 }
             }
             throw new Error("必须先定义[" + parentName + "]")
@@ -190,14 +190,14 @@ define("mmState", ["mmRouter"], function() {
             if (!fromState) {
                 while (t) {
                     states.push(t)
-                    t = t.parent
+                    t = t.parentState
                 }
             } else if (fromState === toState) {
                 states.push(t)
             } else {
                 while (t && t !== fromState) {
                     states.push(t)
-                    t = t.parent
+                    t = t.parentState
                 }
             }
             states.reverse();
@@ -219,8 +219,8 @@ define("mmState", ["mmRouter"], function() {
             if (avalon.vmodels[ctrl]) {
                 avalon.Array.ensure(array, avalon.vmodels[ctrl])
             }
-            if (opts.parent) {
-                getVModel(opts.parent, array)
+            if (opts.parentState) {
+                getVModel(opts.parentState, array)
             }
         }
         getVModel(opts, array)
@@ -232,11 +232,10 @@ define("mmState", ["mmRouter"], function() {
         delete  oldObj[name]
     }
     /*
-     * 对 avalon.router.get 进行重新封装
+     * 对 avalon.router.get 进行重新封装，生成一个状态对象
      * stateName： 指定当前状态名
      * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
      * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
-     * parent: 父状态对象（框架内部生成）
      * views: 对多个[ms-view]容器进行处理,
      *     每个对象应拥有template, templateUrl, templateProvider, resolve属性
      *     template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
@@ -256,15 +255,15 @@ define("mmState", ["mmRouter"], function() {
      * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
      * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
      * resolve: 我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
-     * abstract: 表示它不参与匹配
+     * abstract:  表示它不参与匹配
+     * parentState: 父状态对象（框架内部生成）
      */
-   
-
+  
     avalon.state = function(stateName, opts) {
         var parent = getParent(stateName)
         if (parent) {
             opts.url = parent.url + opts.url
-            opts.parent = parent
+            opts.parentState = parent
         }
         var vmodes = getVModels(opts)
         var topCtrlName = vmodes[vmodes.length - 1].$id
@@ -282,13 +281,13 @@ define("mmState", ["mmRouter"], function() {
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
             var promises = []
-            avalon.each(opts.views, function(name, view) {
-                if (name.indexOf("@") > 0) {
-                    var match = name.split("@")
+            avalon.each(opts.views, function(keyname, view) {
+                if (keyname.indexOf("@") > 0) {
+                    var match = keyname.split("@")
                     var viewname = match[0]
                     var statename = match[1]
                 } else {
-                    viewname = name || ""
+                    viewname = keyname || ""
                     statename = stateName
                 }
                 var nodes = getViews(topCtrlName, statename)
