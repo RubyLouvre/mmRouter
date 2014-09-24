@@ -37,15 +37,15 @@ define("mmState", ["mmRouter"], function() {
             }
         }
         if (to) {
-        //    console.log(to)
-            if(!to.params){
-                to.params = to.parentState ?  to.parentState.params || {} : {}
-            } 
+            //    console.log(to)
+            if (!to.params) {
+                to.params = to.parentState ? to.parentState.params || {} : {}
+            }
             avalon.mix(true, to.params, params || {})
             console.log(to)
             var args = to.keys.map(function(el) {
-           console.log(el.name)
-           console.log(to.params[el.name] )
+                console.log(el.name)
+                console.log(to.params[el.name])
                 return to.params [el.name] || ""
             })
             console.log(args)
@@ -127,7 +127,7 @@ define("mmState", ["mmRouter"], function() {
             if (typeof str == "string") {
                 resolve(str)
             } else {
-                reject(new Error("template必须对应一个字符串或一个返回字符串的函数"))
+                reject("template必须对应一个字符串或一个返回字符串的函数")
             }
         })
         return promise
@@ -141,18 +141,17 @@ define("mmState", ["mmRouter"], function() {
                 url = url(params)
             }
             if (typeof url !== "string") {
-                return reject(new Error("templateUrl必须对应一个URL"))
+                return reject("templateUrl必须对应一个URL")
             }
             if (avalon.templateCache[url]) {
-              return   resolve(avalon.templateCache[url])
-                
+                return  resolve(avalon.templateCache[url])
             }
             var xhr = getXHR()
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     var status = xhr.status;
                     if (status > 399 && status < 600) {
-                        reject(new Error(url + " 对应资源不存在或没有开启 CORS"))
+                        reject("templateUrl对应资源不存在或没有开启 CORS")
                     } else {
                         resolve(avalon.templateCache[url] = xhr.responseText)
                     }
@@ -168,12 +167,29 @@ define("mmState", ["mmRouter"], function() {
         return promise
     }
     function fromProvider(fn, params) {
-        return typeof fn === "function" ? fn(params) : fn
+        var promise = new Promise(function(resolve, reject) {
+            if (typeof fn === "function") {
+                var ret = fn(params)
+                if (ret && ret.then) {
+                    resolve(ret)
+                } else {
+                    reject("templateProvider为函数时应该返回一个Promise或thenable对象")
+                }
+            } else if (fn && fn.then) {
+                resolve(fn)
+            } else {
+                reject("templateProvider不为函数时应该对应一个Promise或thenable对象")
+            }
+        })
+        return promise
     }
-    function fromConfig(config, params) {
+    function fromPromise(config, params) {
         return config.template ? fromString(config.template, params) :
                 config.templateUrl ? fromUrl(config.templateUrl, params) :
-                config.templateProvider ? fromProvider(config.templateProvider, params) : null
+                config.templateProvider ? fromProvider(config.templateProvider, params) :
+                new Promise(function(resolve, reject) {
+                    reject("必须存在template, templateUrl, templateProvider中的一个")
+                })
     }
     //求出当前state对象对应的父state对象
     function getParent(stateName) {
@@ -303,28 +319,29 @@ define("mmState", ["mmRouter"], function() {
                     viewname = keyname || ""
                     statename = stateName
                 }
-              
                 var nodes = getViews(topCtrlName, statename)
-                //   console.log(topCtrlName, statename, viewname)
                 var node = getNamedView(nodes, viewname)
+                var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象"
                 if (node) {
-                    var promise = fromConfig(view, that.params)
+                    var promise = fromPromise(view, that.params)
                     var cb = typeof view.resolve === "function" ? view.resolve : avalon.noop
-                    if (promise && promise.then) {
-                        promise.then(function(s) {
-                            avalon.innerHTML(node, s)
-                            cb.apply(that, args)
-                            avalon.scan(node, getVModels(opts))
-                        })
-                        promises.push(promise)
-                    }
+                    promise.then(function(s) {
+                        avalon.innerHTML(node, s)
+                        cb.apply(that, args)
+                        avalon.scan(node, getVModels(opts))
+                    }, function(msg) {
+                        avalon.log(warnings + " " + msg)
+                    })
+                    promises.push(promise)
+                } else {
+                    avalon.log(warnings + "对应的元素节点不存在")
                 }
             })
 
             return Promise.all(promises)
 
         }, opts)
-       
+
         return this
     }
 })
