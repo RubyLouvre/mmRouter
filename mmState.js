@@ -36,7 +36,6 @@ define("mmState", ["mmRouter"], function() {
                 break
             }
         }
-     
         if (to) {
             if(!to.params){
                 to.params = to.parentState ?  to.parentState.params : {}
@@ -45,7 +44,6 @@ define("mmState", ["mmRouter"], function() {
             var args = to.keys.map(function(el) {
                 return to.params [el.name] || ""
             })
-            console.log(to)
             mmState.transitionTo(from, to, args)
         }
     }
