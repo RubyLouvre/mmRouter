@@ -231,10 +231,16 @@ define("mmState", ["mmRouter"], function() {
      * 对 avalon.router.get 进行重新封装
      * state： 指定当前状态名
      * controller： 指定当前所在的VM的名字
-     * template: 指定当前模板
      * parent: 父状态对象
-     * views: 允许同时处理多个模板 
-     * resolve: 一个用于生成扫描模板的VM的回调函数
+     * views: 对多个[ms-view]容器进行处理,
+     *     每个对象都包含template, templateUrl, templateProvider, resolve
+     *     template*属性必须存在其中一个,它们要求返回一个字符串或一个Promise对象
+     *     resolve是可选
+     *     如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
+     * template: 指定当前模板，也可以为一个函数，传入opts.params作参数
+     * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
+     * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
+     * resolve: 我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
      * abstract: 表示它不参与匹配
      */
     function copyTemplateProperty(newObj, oldObj, name) {
