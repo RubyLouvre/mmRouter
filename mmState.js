@@ -2,9 +2,8 @@ define("mmState", ["mmRouter"], function() {
 //重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query) {
         path = path.trim()
-        var array = this.routingTable[method]
-
-        for (var i = 0, el; el = array[i++]; ) {//el为一个个状态对象，状态对象的callback总是返回一个Promise
+        var states = this.routingTable[method]
+        for (var i = 0, el; el = states[i++]; ) {//el为一个个状态对象，状态对象的callback总是返回一个Promise
             var args = path.match(el.regexp)
             if (args && el.abstract !== true) {//不能是抽象状态
                 el.query = query || {}
@@ -15,7 +14,7 @@ define("mmState", ["mmRouter"], function() {
                 if (keys.length) {
                     this._parseArgs(args, el)
                 }
-                if (el.state) {
+                if (el.stateName) {
                     mmState.transitionTo(mmState.currentState, el, args)
                 } else {
                     el.callback.apply(el, args)
@@ -32,7 +31,7 @@ define("mmState", ["mmRouter"], function() {
         var from = mmState.currentState, to
         var array = this.routingTable.get
         for (var i = 0, el; el = array[i++]; ) {
-            if (el.state == toName) {
+            if (el.stateName === toName) {
                 to = el
                 break
             }
@@ -76,6 +75,7 @@ define("mmState", ["mmRouter"], function() {
             })
         }
     }
+    //找到符合match回调的节点集合
     function  matchSelectors(array, match) {
         for (var i = 0, n = array.length; i < n; i++) {
             matchSelector(i, array, match)
@@ -84,7 +84,7 @@ define("mmState", ["mmRouter"], function() {
             return el
         })
     }
-
+    //上面的辅助函数
     function matchSelector(i, array, match) {
         var parent = array[i]
         var node = parent
@@ -105,10 +105,9 @@ define("mmState", ["mmRouter"], function() {
     }
 
 
-
-    function getNamedView(nodes, name) {
+    function getNamedView(nodes, viewname) {
         for (var i = 0, el; el = nodes[i++]; ) {
-            if (el.getAttribute("ms-view") === name) {
+            if (el.getAttribute("ms-view") === viewname) {
                 return el
             }
         }
@@ -167,18 +166,18 @@ define("mmState", ["mmRouter"], function() {
                 config.templateUrl ? fromUrl(config.templateUrl, params) :
                 config.templateProvider ? fromProvider(config.templateProvider, params) : null
     }
-
-    function getParent(state) {
-        var match = state.match(/([\.\w]+)\./) || ["", ""]
-        var parentState = match[1]
-        if (parentState) {
+   //求出当前state对象对应的父state对象
+    function getParent(stateName) {
+        var match = stateName.match(/([\.\w]+)\./) || ["", ""]
+        var parentName = match[1]
+        if (parentName) {
             var array = avalon.router.routingTable.get
             for (var i = 0, el; el = array[i++]; ) {
-                if (el.state === parentState) {
+                if (el.stateName === parentName) {
                     return el
                 }
             }
-            throw new Error("必须先定义[" + parentState + "]")
+            throw new Error("必须先定义[" + parentName + "]")
         }
     }
 
@@ -227,27 +226,39 @@ define("mmState", ["mmRouter"], function() {
         getVModel(opts, array)
         return array
     }
+    //将template,templateUrl,templateProvider,resolve这四个属性从opts对象拷贝到新生成的view对象上的
+     function copyTemplateProperty(newObj, oldObj, name) {
+        newObj[name] = oldObj[name]
+        delete  oldObj[name]
+    }
     /*
      * 对 avalon.router.get 进行重新封装
-     * state： 指定当前状态名
-     * controller： 指定当前所在的VM的名字
-     * parent: 父状态对象
+     * stateName： 指定当前状态名
+     * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
+     * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
+     * parent: 父状态对象（框架内部生成）
      * views: 对多个[ms-view]容器进行处理,
-     *     每个对象都包含template, templateUrl, templateProvider, resolve
-     *     template*属性必须存在其中一个,它们要求返回一个字符串或一个Promise对象
+     *     每个对象应拥有template, templateUrl, templateProvider, resolve属性
+     *     template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
      *     resolve是可选
      *     如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
+     *     views的结构为
+     *     {
+     *        "": {template: "xxx", resolve: function(){} }
+     *        "aaa": {template: "xxx", resolve: function(){} }
+     *        "bbb@": {template: "xxx", resolve: function(){} }
+     *     }
+     *     views的每个键名(keyname)的结构为viewname@statename，
+     *         如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
+     *         如果名字存在@, viewname为match[0], statename为match[1]
+     *     
      * template: 指定当前模板，也可以为一个函数，传入opts.params作参数
      * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
      * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
      * resolve: 我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
      * abstract: 表示它不参与匹配
      */
-    function copyTemplateProperty(newObj, oldObj, name) {
-        newObj[name] = oldObj[name]
-        delete  oldObj[name]
-    }
-
+   
 
     avalon.state = function(stateName, opts) {
         var parent = getParent(stateName)
@@ -257,7 +268,7 @@ define("mmState", ["mmRouter"], function() {
         }
         var vmodes = getVModels(opts)
         var topCtrlName = vmodes[vmodes.length - 1].$id
-        opts.state = stateName
+        opts.stateName = stateName
         if (!opts.views) {
             var view = {}
             "template,templateUrl,templateProvider,resolve".replace(/\w+/g, function(prop) {
