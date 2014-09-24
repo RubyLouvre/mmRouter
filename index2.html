@@ -52,7 +52,7 @@
                     abstract: true,
                     url: "/contacts",
                     templateUrl: "contacts.html",
-                    resolve: function() {
+                    onChange: function() {
                         if (!avalon.vmodels.contacts) {
                             var lastId
                             var vmodel = avalon.define({
@@ -166,18 +166,18 @@
                 avalon.state("contacts.detail", {
                     controller: "contacts",
                     url: "/{contactId}",
+                    onChange: function(a) {
+                        avalon.vmodels.contacts.id = a
+                    },
                     views: {
                         "": {
                             templateUrl: "contacts.detail.html",
-                            resolve: function(a) {
-                                avalon.vmodels.contacts.id = a
-                            }
                         },
                         'hint@': {
                             template: "当前状态是contacts.detail"
                         },
                         'tip@': {
-                            template: "当前ID是{{contact.id}}"
+                            template: "当前ID是{{contact.id}}",
                         }
                     }
 
@@ -185,23 +185,22 @@
                 avalon.state("contacts.detail.item", {
                     controller: "contacts",
                     url: "/item/{itemID}",
+                    onChange: function() {
+                        var itemID = this.params.itemID
+                        var vmodel = avalon.vmodels.contacts
+                        var el = vmodel.contact
+                        if (el && el.items) {
+                            for (var i = 0, elem; elem = el.items[i++]; ) {
+                                if (elem.id == itemID) {
+                                    vmodel.item = elem;
+                                    break
+                                }
+                            }
+                        }
+                    },
                     views: {
                         "": {
                             templateUrl: "contacts.detail.item.html",
-                            resolve: function() {
-                                var itemID = this.params.itemID
-                                var vmodel = avalon.vmodels.contacts
-                                var el = vmodel.contact
-                                if (el && el.items) {
-                                    for (var i = 0, elem; elem = el.items[i++]; ) {
-                                        if (elem.id == itemID) {
-                                            vmodel.item = elem;
-                                            break
-                                        }
-                                    }
-                                }
-                            }
-
                         },
                         'hint@': {
                             template: "当前状态是contacts.detail.item"

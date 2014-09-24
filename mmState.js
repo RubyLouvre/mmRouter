@@ -37,15 +37,12 @@ define("mmState", ["mmRouter"], function() {
             }
         }
         if (to) {
-            //    console.log(to)
             if (!to.params) {
                 to.params = to.parentState ? to.parentState.params || {} : {}
             }
             avalon.mix(true, to.params, params || {})
-            console.log(to)
             var args = to.keys.map(function(el) {
-                console.log(el.name)
-                console.log(to.params[el.name])
+
                 return to.params [el.name] || ""
             })
             console.log(args)
@@ -262,15 +259,15 @@ define("mmState", ["mmRouter"], function() {
      * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
      * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
      * views: 对多个[ms-view]容器进行处理,
-     *     每个对象应拥有template, templateUrl, templateProvider, resolve属性
+     *     每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
      *     template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
-     *     resolve是可选
+     *     onBeforeLoad, onAfterLoad是可选
      *     如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
      *     views的结构为
      *     {
-     *        "": {template: "xxx", resolve: function(){} }
-     *        "aaa": {template: "xxx", resolve: function(){} }
-     *        "bbb@": {template: "xxx", resolve: function(){} }
+     *        "": {template: "xxx", onBeforeLoad: function(){} }
+     *        "aaa": {template: "xxx", onBeforeLoad: function(){} }
+     *        "bbb@": {template: "xxx", onBeforeLoad: function(){} }
      *     }
      *     views的每个键名(keyname)的结构为viewname@statename，
      *         如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
@@ -279,7 +276,10 @@ define("mmState", ["mmRouter"], function() {
      * template: 指定当前模板，也可以为一个函数，传入opts.params作参数
      * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
      * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
-     * resolve: 我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
+     * onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
+     *           我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
+     * onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+     * onAfterLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
      * abstract:  表示它不参与匹配
      * parentState: 父状态对象（框架内部生成）
      */
@@ -298,7 +298,7 @@ define("mmState", ["mmRouter"], function() {
         opts.stateName = stateName
         if (!opts.views) {
             var view = {}
-            "template,templateUrl,templateProvider,resolve".replace(/\w+/g, function(prop) {
+            "template,templateUrl,templateProvider,onBeforeLoad,onAfterLoad".replace(/\w+/g, function(prop) {
                 copyTemplateProperty(view, opts, prop)
             })
             opts.views = {
@@ -310,6 +310,7 @@ define("mmState", ["mmRouter"], function() {
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
             var promises = []
+            getFn(opts, "onChange").apply(that, args)
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
@@ -324,10 +325,10 @@ define("mmState", ["mmRouter"], function() {
                 var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象"
                 if (node) {
                     var promise = fromPromise(view, that.params)
-                    var cb = typeof view.resolve === "function" ? view.resolve : avalon.noop
+                    getFn(view, "onBeforeLoad").call(node, that)
                     promise.then(function(s) {
                         avalon.innerHTML(node, s)
-                        cb.apply(that, args)
+                        getFn(view, "onAfterLoad").call(node, that)
                         avalon.scan(node, getVModels(opts))
                     }, function(msg) {
                         avalon.log(warnings + " " + msg)
@@ -338,10 +339,16 @@ define("mmState", ["mmRouter"], function() {
                 }
             })
 
-            return Promise.all(promises)
+            return Promise.all(promises).then(function() {
+
+            })
 
         }, opts)
 
         return this
+    }
+
+    function getFn(object, name) {
+        return typeof object[name] === "function" ? object[name] : avalon.noop
     }
 })
