@@ -54,14 +54,27 @@
                     templateUrl: "contacts.html",
                     resolve: function() {
                         if (!avalon.vmodels.contacts) {
+                            var lastId
                             var vmodel = avalon.define({
                                 $id: "contacts",
-                                $skipArray: ["item"],
+                                $skipArray: ["item", "contact"],
                                 edit: function() {
                                     avalon.router.go("contacts.detail.item.edit")
                                 },
                                 done: function() {
                                     avalon.router.go("contacts.detail.item")
+                                },
+                                goToRandom: function() {
+                                    var contacts = vmodel.contacts
+                                    var id = NaN
+                                    while (true) {
+                                        var index = Math.floor(Math.random() * contacts.length)
+                                        id = contacts[index].id
+                                        if (id !== lastId)//确保不重复
+                                            break
+                                    }
+                                    lastId = id
+                                    avalon.router.go("contacts.detail", {contactId: id});
                                 },
                                 contacts: [
                                     {
@@ -96,6 +109,40 @@
                                             }
                                         ]
 
+                                    },
+                                    {
+                                        id: 3,
+                                        name: "光明之星",
+                                        "items": [
+                                            {
+                                                "id": "a",
+                                                "type": "blog",
+                                                "value": "http://bob.blogger.com"
+                                            },
+                                            {
+                                                "id": "b",
+                                                "type": "fax",
+                                                "value": "111-222-333"
+                                            }
+                                        ]
+
+                                    },
+                                    {
+                                        id: 4,
+                                        name: "rubylouver",
+                                        "items": [
+                                            {
+                                                "id": "a",
+                                                "type": "blog",
+                                                "value": "http://bob.rubylouver.com"
+                                            },
+                                            {
+                                                "id": "b",
+                                                "type": "fax",
+                                                "value": "111-222-333"
+                                            }
+                                        ]
+
                                     }
                                 ],
                                 id: NaN,
@@ -118,7 +165,7 @@
                 })
                 avalon.state("contacts.detail", {
                     controller: "contacts",
-                    url: "/{contactID}",
+                    url: "/{contactId}",
                     views: {
                         "": {
                             templateUrl: "contacts.detail.html",
@@ -128,6 +175,9 @@
                         },
                         'hint@': {
                             template: "当前状态是contacts.detail"
+                        },
+                        'tip@': {
+                            template: "当前ID是{{contact.id}}"
                         }
                     }
 

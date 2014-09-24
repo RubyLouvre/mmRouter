@@ -37,13 +37,18 @@ define("mmState", ["mmRouter"], function() {
             }
         }
         if (to) {
+        //    console.log(to)
             if(!to.params){
-                to.params = to.parentState ?  to.parentState.params : {}
+                to.params = to.parentState ?  to.parentState.params || {} : {}
             } 
             avalon.mix(true, to.params, params || {})
+            console.log(to)
             var args = to.keys.map(function(el) {
+           console.log(el.name)
+           console.log(to.params[el.name] )
                 return to.params [el.name] || ""
             })
+            console.log(args)
             mmState.transitionTo(from, to, args)
         }
     }
@@ -139,7 +144,8 @@ define("mmState", ["mmRouter"], function() {
                 return reject(new Error("templateUrl必须对应一个URL"))
             }
             if (avalon.templateCache[url]) {
-                resolve(avalon.templateCache[url])
+              return   resolve(avalon.templateCache[url])
+                
             }
             var xhr = getXHR()
             xhr.onreadystatechange = function() {
