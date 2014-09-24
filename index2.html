@@ -20,11 +20,19 @@
                 avalon.state("home", {
                     controller: "test",
                     url: "/",
-                    template: '<p class="lead">Welcome to the UI-Router Demo</p>' +
-                            '<p>Use the menu above to navigate. ' +
-                            'Pay attention to the <code>$state</code> and <code>$stateParams</code> values below.</p>' +
-                            '<p>Click these links—<a href="#/c?id=1">Alice</a> or ' +
-                            '<a href="#/user/42">Bob</a>—to see a url redirect in action.</p>'
+                    views: {
+                        "": {
+                            template: '<p class="lead">Welcome to the UI-Router Demo</p>' +
+                                    '<p>Use the menu above to navigate. ' +
+                                    'Pay attention to the <code>$state</code> and <code>$stateParams</code> values below.</p>' +
+                                    '<p>Click these links—<a href="#/c?id=1">Alice</a> or ' +
+                                    '<a href="#/user/42">Bob</a>—to see a url redirect in action.</p>'
+                        },
+                        'hint@': {
+                            template: "当前状态是home"
+                        }
+                    }
+
                 })
                 avalon.state("about", {
                     controller: "test",
@@ -161,7 +169,14 @@
                 avalon.state("contacts.list", {
                     controller: "contacts",
                     url: "",
-                    templateUrl: "contacts.list.html"
+                    views: {
+                        "": {
+                            templateUrl: "contacts.list.html"
+                        },
+                        "hint@": {
+                            template: "当前状态是contacts.list"
+                        }
+                    }
                 })
                 avalon.state("contacts.detail", {
                     controller: "contacts",
@@ -177,7 +192,7 @@
                             template: "当前状态是contacts.detail"
                         },
                         'tip@': {
-                            template: "当前ID是{{contact.id}}",
+                            template: "当前ID是{{contact.id}}"
                         }
                     }
 
@@ -243,14 +258,19 @@
             font-size: 16px;
             height:40px;
             line-height: 40px;
+            position: relative;
         }
-
+        .header .hint{
+            position: absolute;
+            top: 8px;
+            right: 40px;
+        }
     </style>
     <body>
         <div ms-controller="test">
             <div class="header">
                 <a href="#!/">mmState</a>  <a href="#!/contacts">contacts</a>  <a href="#!/about">about</a>
-                <p style="float:right" ms-view="hint"></p>
+                <p class="hint" ms-view="hint"></p>
             </div>
 
             <div ms-view></div>

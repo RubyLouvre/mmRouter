@@ -332,6 +332,7 @@ define("mmState", ["mmRouter"], function() {
                         avalon.scan(node, getVModels(opts))
                     }, function(msg) {
                         avalon.log(warnings + " " + msg)
+                       
                     })
                     promises.push(promise)
                 } else {
@@ -339,9 +340,7 @@ define("mmState", ["mmRouter"], function() {
                 }
             })
 
-            return Promise.all(promises).then(function() {
-
-            })
+            return Promise.all(promises)
 
         }, opts)
 
