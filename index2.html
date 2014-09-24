@@ -1,22 +1,46 @@
 <!DOCTYPE html>
-
 <html>
     <head>
-        <title>路由器的相关测试</title>
+        <title>mmState的相关测试</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
+        <style>
+            .header{
+                background-color: #ccc;
+                height:40px;
+            }
+            .header a{
+                width:140px;
+                display: inline-block;
+                text-decoration: none;
+                text-align: center;
+                font-weight: bolder;
+                font-size: 16px;
+                height:40px;
+                line-height: 40px;
+                position: relative;
+            }
+            .header .hint{
+                position: absolute;
+                top: 8px;
+                right: 40px;
+            }
+        </style>
         <script src="avalon.js">
 
         </script>
         <script>
             avalon.config({debug: false})
             require(["ready!", "mmState"], function() {
-                var model = avalon.define("test", function(vm) {
-                    vm.hash = function(a, e) {
-                        location.hash = a
-                        e.preventDefault()
-                    }
+                //一个顶级VM
+                avalon.define({
+                    $id: "test"
                 })
+                //接着下来通过mmState这个基于状态机的高级路由器，定义各种状态
+                //（每个状态包含各个要处理的模板容器，获取模板的手段，中途会发生的各种回调）
+                //////////////
+                // hone   //
+                /////////////
                 avalon.state("home", {
                     controller: "test",
                     url: "/",
@@ -34,6 +58,9 @@
                     }
 
                 })
+                ///////////
+                // about //
+                //////////
                 avalon.state("about", {
                     controller: "test",
                     url: "/about",
@@ -54,7 +81,9 @@
                         }
                     }
                 })
-
+                //////////////
+                // contacts //
+                /////////////
                 avalon.state("contacts", {
                     controller: "test",
                     abstract: true,
@@ -166,6 +195,9 @@
                         }
                     }
                 })
+                ///////////////////
+                // contacts.list //
+                //////////////////
                 avalon.state("contacts.list", {
                     controller: "contacts",
                     url: "",
@@ -178,6 +210,9 @@
                         }
                     }
                 })
+                ///////////////////
+                // contacts.detail //
+                //////////////////
                 avalon.state("contacts.detail", {
                     controller: "contacts",
                     url: "/{contactId}",
@@ -195,8 +230,10 @@
                             template: "当前ID是{{contact.id}}"
                         }
                     }
-
                 })
+                //////////////////////////
+                // contacts.detail.item //
+                /////////////////////////
                 avalon.state("contacts.detail.item", {
                     controller: "contacts",
                     url: "/item/{itemID}",
@@ -223,7 +260,9 @@
                     }
 
                 })
-
+                ///////////////////////////////
+                // contacts.detail.item.edit //
+                ///////////////////////////////
                 avalon.state("contacts.detail.item.edit", {
                     views: {
                         "@contacts.detail.item": {
@@ -234,41 +273,19 @@
                         }
                     }
                 })
+                //启动路由
                 avalon.history.start({
                     basepath: "/mmRouter"
                 })
+                //go!!!!!!!!!
                 avalon.scan()
             })
 
-
-
-//http://angular-ui.github.io/ui-router/sample/#/contacts/42
         </script>
 
 
     </head>
-    <style>
-        .header{
-            background-color: #ccc;
-            height:40px;
-        }
-        .header a{
-            width:140px;
-            display: inline-block;
-            text-decoration: none;
-            text-align: center;
-            font-weight: bolder;
-            font-size: 16px;
-            height:40px;
-            line-height: 40px;
-            position: relative;
-        }
-        .header .hint{
-            position: absolute;
-            top: 8px;
-            right: 40px;
-        }
-    </style>
+
     <body>
         <div ms-controller="test">
             <div class="header">
