@@ -60,20 +60,7 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 <p>你必须在页面的某一元素节点添加ms-controller指令，然后在在ms-controllor所在元素或其子孙元素,
  绑定ms-view指令。要不会报<code>topController不存在</code>错误</p>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<p>具体可以看http://localhost:xxx/mmRouter/index2.html 示例页面</p>
 
 thanks to  sammy， jquery-address， backbone.js，angular.js
 以后要学习一下 director

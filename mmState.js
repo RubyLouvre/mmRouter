@@ -155,11 +155,11 @@ define("mmState", ["mmRouter"], function() {
             getFn(opts, "onChange").apply(that, args)
             var vmodes = getVModels(opts)
             var topCtrlName = vmodes[vmodes.length - 1]
-            if (topCtrlName){
+            if (!topCtrlName) {
                 avalon.log("topController不存在")
-                  return
+                return
             }
-              
+
             topCtrlName = topCtrlName.$id
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
