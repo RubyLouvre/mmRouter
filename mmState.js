@@ -154,7 +154,13 @@ define("mmState", ["mmRouter"], function() {
             var promises = []
             getFn(opts, "onChange").apply(that, args)
             var vmodes = getVModels(opts)
-            var topCtrlName = vmodes[vmodes.length - 1].$id
+            var topCtrlName = vmodes[vmodes.length - 1]
+            if (topCtrlName){
+                log("topController不存在")
+                  return
+            }
+              
+            topCtrlName = topCtrlName.$id
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
