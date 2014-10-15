@@ -156,7 +156,7 @@ define("mmState", ["mmRouter"], function() {
             var vmodes = getVModels(opts)
             var topCtrlName = vmodes[vmodes.length - 1]
             if (topCtrlName){
-                log("topController不存在")
+                avalon.log("topController不存在")
                   return
             }
               
