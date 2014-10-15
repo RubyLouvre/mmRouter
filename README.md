@@ -57,6 +57,9 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 <h2>mmState</h2>
 
 
+<p>你必须在页面的某一元素节点添加ms-controller指令，然后在在ms-controllor所在元素或其子孙元素,
+ 绑定ms-view指令。要不会报<code>topController不存在</code>错误</p>
+
 
 
 
