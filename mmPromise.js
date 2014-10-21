@@ -174,11 +174,13 @@ define(["avalon"], function(avalon) {
         nativePromise.prototype.done = Promise.prototype.done
         nativePromise.prototype.fail = Promise.prototype.fail
         nativePromise.any = nativePromise.race
+        avalon.mmPromise = nativePromise
     } else {
         Promise.any = Promise.race
         window.Promise = Promise
+        avalon.mmPromise = Promise
     }
-    avalon.mmPromise = Promise
+    
     return avalon
 })
 //https://github.com/ecomfe/er/blob/master/src/Deferred.js

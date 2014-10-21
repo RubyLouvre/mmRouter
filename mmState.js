@@ -1,4 +1,5 @@
-define("mmState", ["mmPromise","mmRouter"], function(Promise) {
+define("mmState", ["mmPromise","mmRouter"], function() {
+    var Promise = avalon.mmPromise
 //重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query) {
         path = path.trim()
