@@ -1,4 +1,4 @@
-define("mmState", ["mmPromise","mmRouter"], function() {
+define("mmState", ["mmPromise", "mmRouter"], function() {
 //重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query) {
         path = path.trim()
@@ -159,7 +159,6 @@ define("mmState", ["mmPromise","mmRouter"], function() {
                 avalon.log("topController不存在")
                 return
             }
-
             topCtrlName = topCtrlName.$id
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
@@ -172,7 +171,7 @@ define("mmState", ["mmPromise","mmRouter"], function() {
                 }
                 var nodes = getViews(topCtrlName, statename)
                 var node = getNamedView(nodes, viewname)
-                var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象"
+                var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
                 if (node) {
                     var promise = fromPromise(view, that.params)
                     getFn(view, "onBeforeLoad").call(node, that)
@@ -182,7 +181,6 @@ define("mmState", ["mmPromise","mmRouter"], function() {
                         avalon.scan(node, vmodes)
                     }, function(msg) {
                         avalon.log(warnings + " " + msg)
-
                     })
                     promises.push(promise)
                 } else {
@@ -211,6 +209,7 @@ define("mmState", ["mmPromise","mmRouter"], function() {
         if (document.querySelectorAll) {
             return document.querySelectorAll(firstExpr + " " + otherExpr.join(" "))
         } else {
+            //DIV[avalonctrl="test"] [ms-view] 从右到左查找，先找到所有匹配[ms-view]的元素
             var seeds = Array.prototype.filter.call(document.getElementsByTagName("*"), function(node) {
                 return typeof node.getAttribute("ms-view") === "string"
             })
@@ -220,8 +219,10 @@ define("mmState", ["mmPromise","mmRouter"], function() {
                     return typeof node.getAttribute("ms-view") === "string"
                 })
             }
+            //判定这些候先节点是否匹配[avalonctrl="test"]或[ms-controller="test"]
             seeds = matchSelectors(seeds, function(node) {
-                return typeof node.getAttribute("ms-controller") === ctrl
+                return  node.getAttribute("avalonctrl") === ctrl ||
+                        node.getAttribute("ms-controller") === ctrl
             })
             return seeds.map(function(el) {
                 return el.node
@@ -247,13 +248,15 @@ define("mmState", ["mmPromise","mmRouter"], function() {
     }
     // 【matchSelectors】的辅助函数，判定array[i]及其祖先是否匹配match回调
     function matchSelector(i, array, match) {
-        var parent = array[i]
-        var node = parent
-        if (parent.node) {
-            parent = parent.parent
-            node = parent.node
+        var elem = array[i]
+        if (elem.node) {
+            var node = elem.node
+            var parent = elem.parent
+        } else {
+            node = elem
+            parent = elem.parentNode
         }
-        while (parent) {
+        while (parent && parent.nodeType !== 9) {
             if (match(parent)) {
                 return array[i] = {
                     node: node,
@@ -264,7 +267,6 @@ define("mmState", ["mmPromise","mmRouter"], function() {
         }
         array[i] = false
     }
-
     // 【avalon.state】的辅助函数，opts.template的处理函数
     function fromString(template, params) {
         var promise = new Promise(function(resolve, reject) {

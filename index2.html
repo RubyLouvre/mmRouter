@@ -3,6 +3,7 @@
     <head>
         <title>mmState的相关测试</title>
         <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=7" />
         <meta name="viewport" content="width=device-width">
         <style>
             .header{
@@ -30,7 +31,7 @@
 
         </script>
         <script>
-            avalon.config({debug: false})
+            avalon.config({debug: true})
             require(["ready!", "mmState"], function() {
                 //一个顶级VM
                 avalon.define({

@@ -113,6 +113,11 @@
     if (isWindow(window)) {
         avalon.isWindow = isWindow
     }
+    var enu
+    for (enu in avalon({})) {
+        break
+    }
+    var enumerateBUG = enu !== "0"//IE6下为true, 其他为false
     /*判定是否是一个朴素的javascript对象（Object），不是DOM对象，不是BOM对象，不是自定义类的实例*/
     avalon.isPlainObject = function(obj, key) {
         if (!obj || avalon.type(obj) !== "object" || obj.nodeType || avalon.isWindow(obj)) {
@@ -127,9 +132,14 @@
         } catch (e) {//IE8 9会在这里抛错
             return false;
         }
+        if (enumerateBUG) {
+            for (key in obj) {
+                return ohasOwn.call(obj, key)
+            }
+        }
         for (key in obj) {
         }
-        return key === undefined || ohasOwn.call(obj, key);
+        return key === void 0 || ohasOwn.call(obj, key);
     }
     if (rnative.test(Object.getPrototypeOf)) {
         avalon.isPlainObject = function(obj) {
@@ -167,7 +177,11 @@
             if ((options = arguments[i]) != null) {
                 for (name in options) {
                     src = target[name]
-                    copy = options[name]
+                    try {
+                        copy = options[name]//当options为VBS对象时报错
+                    } catch (e) {
+                        continue
+                    }
 
                     // 防止环引用
                     if (target === copy) {
@@ -393,7 +407,7 @@
         if (!$id) {
             log("warning: vm必须指定$id")
         }
-        if (VMODELS[id]) {
+        if (VMODELS[$id]) {
             log("warning: " + $id + " 已经存在于avalon.vmodels中")
         }
         if (typeof id === "object") {
@@ -431,7 +445,7 @@
         return true
     }
 
-    function modelFactory($scope, $special) {
+    function modelFactory($scope, $special, $model) {
         if (Array.isArray($scope)) {
             var arr = $scope.concat()
             $scope.length = 0
@@ -450,7 +464,7 @@
         }
         $scope.$skipArray.$special = $special || {}//强制要监听的属性
         var $vmodel = {} //要返回的对象, 它在IE6-8下可能被偷龙转凤
-        var $model = {}  //vmodels.$model属性
+        $model = $model || {}  //vmodels.$model属性
         var $events = {} //vmodel.$events属性
         var watchedProperties = {} //监控属性
         var computedProperties = []  //计算属性
@@ -528,9 +542,8 @@
                             return childVmodel
                         }
                     }
-                    var childVmodel = accessor.child = modelFactory(val)
+                    var childVmodel = accessor.child = modelFactory(val, 0, $model[name])
                     childVmodel.$events[subscribers] = $events[name]
-                    $model[name] = childVmodel.$model
                 } else {
                     //第3种对应简单的数据类型，自变量，监控属性
                     accessor = function(newValue) {
@@ -631,8 +644,8 @@
         //a为原来的VM， b为新数组或新对象
         var son = parent[name]
         if (valueType === "array") {
-            if (!Array.isArray(value)) {
-                return parent //fix https://github.com/RubyLouvre/avalon/issues/261
+            if (!Array.isArray(value) || son === value) {
+                return son //fix https://github.com/RubyLouvre/avalon/issues/261
             }
             son.clear()
             son.pushArray(value.concat())
@@ -1637,9 +1650,9 @@
     tagHooks.optgroup = tagHooks.option
     tagHooks.tbody = tagHooks.tfoot = tagHooks.colgroup = tagHooks.caption = tagHooks.thead
     tagHooks.th = tagHooks.td
-//处理SVG
-    tagHooks.circle = tagHooks.ellipse = tagHooks.line = tagHooks.path =
-            tagHooks.polygon = tagHooks.polyline = tagHooks.rect = tagHooks.text
+    "g,circle,ellipse,line,path,polygon,polyline,text".replace(rword, function(tag) {
+        tagHooks[tag] = tagHooks.text//处理SVG
+    })
     var script = DOC.createElement("script")
     avalon.parseHTML = function(html) {
         if (typeof html !== "string") {
@@ -1762,16 +1775,18 @@
                 type = RegExp.$2
             }
             var events = this.$events
-            var callbacks = events[type] || []
-            var all = events.$all || []
             var args = aslice.call(arguments, 1)
-            for (var i = 0, callback; callback = callbacks[i++]; ) {
-                if (isFunction(callback))
-                    callback.apply(this, args)
-            }
-            for (var i = 0, callback; callback = all[i++]; ) {
-                if (isFunction(callback))
-                    callback.apply(this, arguments)
+            if (!special) {
+                var callbacks = events[type] || []
+                var all = events.$all || []
+                for (var i = 0, callback; callback = callbacks[i++]; ) {
+                    if (isFunction(callback))
+                        callback.apply(this, args)
+                }
+                for (var i = 0, callback; callback = all[i++]; ) {
+                    if (isFunction(callback))
+                        callback.apply(this, arguments)
+                }
             }
             var element = events.expr && findNode(events.expr)
             if (element) {
@@ -2629,6 +2644,12 @@
                     val = val.replace(/&amp;/g, "&") //处理IE67自动转义的问题
                 }
                 elem[method] = val
+                if (window.chrome && elem.tagName === "EMBED") {
+                    var parent = elem.parentNode//#525  chrome1-37下embed标签动态设置src不能发生请求
+                    var comment = document.createComment("ms-src")
+                    parent.replaceChild(comment, elem)
+                    parent.replaceChild(elem, comment)
+                }
             }
         },
         "class": function(val, elem, data) {
@@ -3330,10 +3351,21 @@
             if (event === "change") {
                 bound("change", updateVModel)
             } else {
-                if (W3C && DOC.documentMode !== 9) { //IE10+, W3C
+                if (W3C) { //IE9+, W3C
                     bound("input", updateVModel)
                     bound("compositionstart", compositionStart)
                     bound("compositionend", compositionEnd)
+                    if ("onselectionchange"in DOC) {//fix IE9 http://www.matts411.com/post/internet-explorer-9-oninput/
+                        function selectionchange(e) {
+                            if (e.type === "focus") {
+                                DOC.addEventListener("selectionchange", updateVModel, false);
+                            } else {
+                                DOC.removeEventListener("selectionchange", updateVModel, false);
+                            }
+                        }
+                        bound("focus", selectionchange)
+                        bound("blur", selectionchange)
+                    }
                 } else {
                     var events = ["keyup", "paste", "cut", "change"]
 
@@ -3632,7 +3664,7 @@
             pos = typeof pos === "number" ? pos : oldLength
             var added = []
             for (var i = 0, n = arr.length; i < n; i++) {
-                added[i] = convert(arr[i])
+                added[i] = convert(arr[i], this.$model[pos + i])
             }
             _splice.apply(this, [pos, 0].concat(added))
             this._fire("add", pos, added)
@@ -3787,9 +3819,9 @@
         }
     })
 
-    function convert(val) {
+    function convert(val, $model) {
         if (rcomplexType.test(avalon.type(val))) {
-            val = val.$id ? val : modelFactory(val)
+            val = val.$id ? val : modelFactory(val, 0, $model)
         }
         return val
     }
@@ -4152,8 +4184,7 @@
             }
             return string
         }
-        var rfixFFDate = /^(\d+)-(\d+)-(\d{4})$/
-        var rfixIEDate = /^(\d+)\s+(\d+),(\d{4})$/
+        var rfixYMD = /^(\d+)\D(\d+)\D(\d+)/
         filters.date = function(date, format) {
             var locate = filters.date.locate,
                     text = "",
@@ -4166,9 +4197,10 @@
                     date = toInt(date)
                 } else {
                     var trimDate = date.trim()
-                    if (trimDate.match(rfixFFDate) || trimDate.match(rfixIEDate)) {
-                        date = RegExp.$3 + "/" + RegExp.$1 + "/" + RegExp.$2
-                    }
+                    var date = trimDate.replace(rfixYMD, function(a, b, c, d) {
+                        var array = d.length === 4 ? [d, b, c] : [b, c, d]
+                        return array.join("/")
+                    })
                     date = jsonStringToDate(date)
                 }
                 date = new Date(date)
