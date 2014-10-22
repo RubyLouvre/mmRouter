@@ -177,8 +177,8 @@ define(["avalon"], function(avalon) {
         Promise.race = function(array) {
             return _some(true, array)
         }
-        Promise.any = Promise.race
-        return avalon.mmPromise = Promise
+        Promise.any =  Promise.race
+        return window.Promise = avalon.mmPromise = Promise
     }
 })
 //https://github.com/ecomfe/er/blob/master/src/Deferred.js
