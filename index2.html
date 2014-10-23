@@ -201,6 +201,12 @@
                 avalon.state("contacts.list", {
                     controller: "contacts",
                     url: "",
+                    onBeforeLoad: function() {
+                        avalon.log("contacts.list:onBeforeLoad")
+                    },
+                    onAfterLoad: function() {
+                        avalon.log("contacts.list:onAfterLoad")
+                    },
                     views: {
                         "": {
                             templateUrl: "contacts.list.html"

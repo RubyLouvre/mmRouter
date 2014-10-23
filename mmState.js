@@ -174,10 +174,10 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                 var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
                 if (node) {
                     var promise = fromPromise(view, that.params)
-                    getFn(view, "onBeforeLoad").call(node, that)
+                    getFn(opts, "onBeforeLoad").call(node, that)
                     promise.then(function(s) {
                         avalon.innerHTML(node, s)
-                        getFn(view, "onAfterLoad").call(node, that)
+                        getFn(opts, "onAfterLoad").call(node, that)
                         avalon.scan(node, vmodes)
                     }, function(msg) {
                         avalon.log(warnings + " " + msg)
