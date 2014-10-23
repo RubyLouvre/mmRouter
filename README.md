@@ -1,7 +1,82 @@
 mmRouter
-=============
+=========================
 
 avalon的三柱臣之一（ 路由，动画，AJAX）
+
+mmRourer的使用
+----------------------------------------
+1、引入依赖(直接依赖于mmRouter, 总共依赖于avalon, mmRouter, mmHistory)
+```javascript
+  require(["mmRouter"], function() {
+  })
+```
+2、定义VM
+```javascript
+    var model = avalon.define('test', function(vm) {
+        vm.currPath = ""
+        vm.params = {}
+        vm.query = {}
+        vm.args = "[]"
+    })
+```
+3、定义路由规则
+```javascript
+ function callback() {
+    model.currPath = this.path
+    var params = this.params
+    if ("time" in params) {
+        params.time = avalon.filters.date(params.time, "yyyy年M月dd日")
+    }
+    model.params = params
+    model.query = this.query
+    model.args = "[" + [].slice.call(arguments, 0) + "]"
+
+}
+avalon.router.get("/aaa/", callback)
+avalon.router.get("/bbb", callback)
+avalon.router.get("/ccc/:ccc", callback)
+avalon.router.get("/ddd/{time:date}/", callback)
+avalon.router.get("/eee/{count:\\d{4}}/", callback)
+avalon.router.get("/fff", callback)
+```
+4、启动历史管理器
+```javascript
+ avalon.history.start({
+     basepath: "/avalon"
+  })
+```
+5、开始扫描
+```javascript
+avalon.scan()
+```
+6、页面上的链接处理，所有不想跳转不想刷新整面的A标签，都需要以`#!`/或`#/`开头
+（这个由历史管理器的`hashPrefix`参数决定，默认是`!`），target属性指向当前页面．
+```html
+ <ul>
+    <li><a href="#!/aaa">aaa</a></li>
+    <li><a href="#!/bbb?uu=3445345&were=4324">bbb</a></li>
+    <li><a href="#!/ccc/etretr">ccc</a></li>
+    <li><a href="#!/ddd/2014-09-19">ddd</a></li>
+    <li><a href="#!/eee/2222">eee</a></li>
+    <li><a href="#!/fff?a=1&nn=4&dfg=676">fff</a></li>
+</ul>
+```
+mmRouter与mmHistory的API列表
+----------------------------------------
+* `avalon.history.start(opts)`， 开始监听URL变化，opts。 enter image description here
+* `avalon.history.stop()`， 中止监听URL变化。
+* `avalon.router.get(path, callback)`，用于添加路由规则。第一个为路由规则，<br>
+如"/aaa", "/bbb/:bbbId","/eee/{eeeId}/ddd/{dddId:[0-9]{6}}" 冒号后的东西或花括号的东西表示为参数，<br>
+花括号模式下还可以指定匹配规则。callback为回调函数，框架会将冒号后的或花括中的匹配内容传进来，<br>
+此外this对象，包含了path、 params、 query等对象与属性。
+* `avalon.router.add(method, path, callback)` ， 添加回调，第一个为请求类型，
+如GET，POST，DELETE什么， 第2个为路由规则，第3个为回调函数
+* `avalon.router.error(callback)`，如果没有一条路由规则满足此请求，那么就转交此回调处理，
+我们可以在里面写跳转到404页面这样的逻辑
+* `avalon.router.navigate(path)`，强制触发对应路径的回调
+* `avalon.router.setLastPath(path)` ， 这是框架自己调用，保存最近一次跳转的路径
+* `avalon.router.getLastPath()` 取得最近一次跳转的路径，比如用户F5强制页面，你在ready回调中执行此方法，
+得到path，然后将它放进navigate中就能回到原来的页面了。
 
 
 <h3>路由器的相关API</h3>
@@ -56,7 +131,7 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 ```
 mmState的使用
 ----------------------------------------
-1、引入mmState,与等待domReady完成
+1、引入依赖(直接依赖于mmState, 总共依赖于avalon, mmRouter, mmHistory, mmPromise, mmState)
 ```javascript
     require(["ready!", "mmState"], function() {
 
@@ -96,8 +171,7 @@ mmState的使用
 ```
 注意，第一个状态，<b>必须指定controller</b>，controller为顶层VM的`$id`。
 注意，添加状态的顺序，必须先添加aaa, 再添加aaa.bbb，再添加aaa.bbb.ccc，不能先添加aaa.bbb，再添加aaa
-4、启动路由
-5、开始扫描
+4、启动历史管理器
 ```javascript
     avalon.history.start({
         basepath: "/mmRouter"
