@@ -54,12 +54,8 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 
 })
 ```
-<h2>mmState</h2>
-
-
-<p>你必须在页面的某一元素节点添加ms-controller指令，然后在在ms-controllor所在元素或其子孙元素,
- 绑定ms-view指令。要不会报<code>topController不存在</code>错误</p>
-
+mmState的使用
+----------------------------------------
 1、引入mmState,与等待domReady完成
 ```javascript
     require(["ready!", "mmState"], function() {
@@ -68,8 +64,7 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 ```
 2、定义顶层VM， 名字随便叫，但页面上有一个ms-controller，因为 mmState内部有一个getViews方法，通过它得到所有ms-views所在的子孙元素
 `getViews("test","contacts.list")` 得到`DIV[avalonctrl="test"] [ms-view]`这样一个CSS表达式，再通过`document.querySelectorAll`
-或内部为兼容IE67实现的简单选择器引擎进行元素查找
-从右到左查找，先找到所有匹配[ms-view]的元素
+或内部为兼容IE67实现的简单选择器引擎进行元素查找。
 ```javascript
     require(["ready!", "mmState"], function() {
         //一个顶层VM
@@ -112,6 +107,39 @@ require(["mmRouter", "aaa", "bbb", "ccc"], function(avalon, av, bv, cv){
 ```javascript
    avalon.scan()
 ```
+avalon.state的参数与配置项与内部生成属性
+-----------------------------------
+```javascript
+avalon.state(stateName: opts)
+```
+*stateName： 指定当前状态名
+*url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
+*controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
+*views: 对多个[ms-view]容器进行处理,
+    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
+    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
+    onBeforeLoad, onAfterLoad是可选
+    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
+    views的结构为
+    {
+       "": {template: "xxx", onBeforeLoad: function(){} }
+       "aaa": {template: "xxx", onBeforeLoad: function(){} }
+       "bbb@": {template: "xxx", onBeforeLoad: function(){} }
+    }
+    views的每个键名(keyname)的结构为viewname@statename，
+        如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
+        如果名字存在@, viewname为match[0], statename为match[1]
+
+*template: 指定当前模板，也可以为一个函数，传入opts.params作参数
+*templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
+*templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
+*onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
+          我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
+*onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+*onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+*abstract:  表示它不参与匹配
+*parentState: 父状态对象（框架内部生成）
+
 
 <p>具体可以看http://localhost:xxx/mmRouter/index2.html 示例页面</p>
 
