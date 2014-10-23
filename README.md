@@ -116,12 +116,13 @@ avalon.state(stateName: opts)
 * stateName： 指定当前状态名
 * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
 * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
-* views: 对多个[ms-view]容器进行处理,
-    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
-    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
-    onBeforeLoad, onAfterLoad是可选
-    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
-    views的结构为
+* views: 对多个[ms-view]容器进行处理,<br>
+    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性<br>
+    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象<br>
+    onBeforeLoad, onAfterLoad是可选<br>
+    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上<br>
+    views的结构为<br>
+```
     {
        "": {template: "xxx", onBeforeLoad: function(){} }
        "aaa": {template: "xxx", onBeforeLoad: function(){} }
@@ -130,7 +131,7 @@ avalon.state(stateName: opts)
     views的每个键名(keyname)的结构为viewname@statename，
         如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
         如果名字存在@, viewname为match[0], statename为match[1]
-
+```
 * template: 指定当前模板，也可以为一个函数，传入opts.params作参数
 * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
 * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
