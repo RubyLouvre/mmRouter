@@ -112,10 +112,11 @@ avalon.state的参数与配置项与内部生成属性
 ```javascript
 avalon.state(stateName: opts)
 ```
-*stateName： 指定当前状态名
-*url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
-*controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
-*views: 对多个[ms-view]容器进行处理,
+
+* stateName： 指定当前状态名
+* url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
+* controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
+* views: 对多个[ms-view]容器进行处理,
     每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
     template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
     onBeforeLoad, onAfterLoad是可选
@@ -130,15 +131,15 @@ avalon.state(stateName: opts)
         如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
         如果名字存在@, viewname为match[0], statename为match[1]
 
-*template: 指定当前模板，也可以为一个函数，传入opts.params作参数
-*templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
-*templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
-*onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
+* template: 指定当前模板，也可以为一个函数，传入opts.params作参数
+* templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
+* templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
+* onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
           我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
-*onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
-*onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
-*abstract:  表示它不参与匹配
-*parentState: 父状态对象（框架内部生成）
+* onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+* onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+* abstract:  表示它不参与匹配
+* parentState: 父状态对象（框架内部生成）
 
 
 <p>具体可以看http://localhost:xxx/mmRouter/index2.html 示例页面</p>
