@@ -124,7 +124,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
      * onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
      *           我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
      * onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
-     * onAfterLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
+     * onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
      * abstract:  表示它不参与匹配
      * parentState: 父状态对象（框架内部生成）
      */
