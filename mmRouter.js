@@ -34,7 +34,7 @@ define(["mmHistory"], function() {
         },
         _pathToRegExp: function(pattern, opts) {
             var keys = opts.keys = [],
-              //      segments = opts.segments = [],
+                    //      segments = opts.segments = [],
                     compiled = '^', last = 0, m, name, regexp, segment;
 
             while ((m = placeholder.exec(pattern))) {
@@ -51,12 +51,12 @@ define(["mmHistory"], function() {
                 }
                 keys.push(key)
                 compiled += quoteRegExp(segment, regexp, false)
-              //  segments.push(segment)
+                //  segments.push(segment)
                 last = placeholder.lastIndex
             }
             segment = pattern.substring(last);
             compiled += quoteRegExp(segment) + (opts.strict ? opts.last : "\/?") + '$';
-          //  segments.push(segment);
+            //  segments.push(segment);
             opts.regexp = new RegExp(compiled, opts.caseInsensitive ? 'i' : undefined);
             return opts
 
@@ -180,9 +180,11 @@ define(["mmHistory"], function() {
     }
     function supportLocalStorage() {
         try {
-            return 'localStorage' in window && window['localStorage'] !== null;
+            localStorage.setItem("avalon", 1)
+            localStorage.removeItem("avalon")
+            return true
         } catch (e) {
-            return false;
+            return false
         }
     }
 
