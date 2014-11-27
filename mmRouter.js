@@ -56,8 +56,9 @@ define(["mmHistory"], function() {
             }
             segment = pattern.substring(last);
             compiled += quoteRegExp(segment) + (opts.strict ? opts.last : "\/?") + '$';
+            var sensitive = typeof opts.caseInsensitive === "boolean" ? opts.caseInsensitive : true
             //  segments.push(segment);
-            opts.regexp = new RegExp(compiled, opts.caseInsensitive ? 'i' : undefined);
+            opts.regexp = new RegExp(compiled, sensitive ? 'i' : undefined);
             return opts
 
         },
