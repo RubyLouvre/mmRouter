@@ -3,7 +3,7 @@ mmRouter
 
 avalon的三柱臣之一（ 路由，动画，AJAX）
 
-mmRourer的使用
+mmRouter的使用
 ----------------------------------------
 1、引入依赖(直接依赖于mmRouter, 总共依赖于avalon, mmRouter, mmHistory)
 ```javascript
