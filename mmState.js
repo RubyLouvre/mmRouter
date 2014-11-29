@@ -49,8 +49,10 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
     }
 
     var mmState = {
+        prevState: null,
         currentState: null,
         transitionTo: function(fromState, toState, args) {
+            mmState.prevState = fromState
             mmState.currentState = toState
             var states = []
             var t = toState
@@ -160,6 +162,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                 return
             }
             topCtrlName = topCtrlName.$id
+            var prevState = mmState.prevState && (mmState.prevState.stateName +'.')
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
@@ -169,23 +172,25 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     viewname = keyname || ""
                     statename = stateName
                 }
-                var nodes = getViews(topCtrlName, statename)
-                var node = getNamedView(nodes, viewname)
-                var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
-                if (node) {
-                    var promise = fromPromise(view, that.params)
-                    getFn(opts, "onBeforeLoad").call(node, that)
-                    promise.then(function(s) {
-                        avalon.innerHTML(node, s)
-                        getFn(opts, "onAfterLoad").call(node, that)
-                        avalon.scan(node, vmodes)
-                    }, function(msg) {
-                        avalon.log(warnings + " " + msg)
-                    })
-                    promises.push(promise)
-                } else {
-                    avalon.log(warnings + "对应的元素节点不存在")
-                }
+                if(!prevState || prevState.indexOf(stateName + '.') !== 0) {
+                    var nodes = getViews(topCtrlName, statename)
+                    var node = getNamedView(nodes, viewname)
+                    var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
+                    if (node) {
+                        var promise = fromPromise(view, that.params)
+                        getFn(opts, "onBeforeLoad").call(node, that)
+                        promise.then(function(s) {
+                            avalon.innerHTML(node, s)
+                            getFn(opts, "onAfterLoad").call(node, that)
+                            avalon.scan(node, vmodes)
+                        }, function(msg) {
+                            avalon.log(warnings + " " + msg)
+                        })
+                        promises.push(promise)
+                    } else {
+                        avalon.log(warnings + "对应的元素节点不存在")
+                    }
+                }    
             })
 
             return Promise.all(promises)
