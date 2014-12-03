@@ -149,7 +149,7 @@ define(["mmHistory"], function() {
                 }
             },
             string: {
-                pattern: "[^\/]*"
+                pattern: "[^\\/]*"
             },
             bool: {
                 decode: function(val) {
@@ -161,7 +161,7 @@ define(["mmHistory"], function() {
                 decode: function(val) {
                     return parseInt(val, 10);
                 },
-                pattern: "\d+"
+                pattern: "\\d+"
             }
         }
     }
