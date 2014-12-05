@@ -123,6 +123,7 @@ define(["mmHistory"], function() {
         },
         navigate: function(hash) {
             var parsed = parseQuery(hash)
+            avalon.history.updateLocation(hash)
             this.route("get", parsed.path, parsed.query)
         },
         /* *
