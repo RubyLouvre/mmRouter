@@ -171,7 +171,6 @@ define(["avalon"], function(avalon) {
                     break;
             }
             //根据当前的location立即进入不同的路由回调
-
             this.fireRouteChange(this.fragment || "/")
 
         },

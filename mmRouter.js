@@ -123,6 +123,8 @@ define(["mmHistory"], function() {
         },
         navigate: function(hash) {
             var parsed = parseQuery(hash)
+            if(hash.charAt(0) === "/")
+                hash = hash.slice(1)// 修正出现多扛的情况 fix http://localhost:8383/mmRouter/index.html#!//
             avalon.history.updateLocation(hash)
             this.route("get", parsed.path, parsed.query)
         },
