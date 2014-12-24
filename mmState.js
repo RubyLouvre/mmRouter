@@ -349,7 +349,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
     }
     //【avalon.state】的辅助函数，得到目标状态对象对应的父状态对象
     function getParent(stateName) {
-        var match = stateName.match(/([\.\w]+)\./) || ["", ""]
+        var match = stateName.match(/([-\.\w]+)\./) || ["", ""]
         var parentName = match[1]
         if (parentName) {
             var states = avalon.router.routingTable.get
