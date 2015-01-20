@@ -94,7 +94,6 @@
                             var lastId
                             var vmodel = avalon.define({
                                 $id: "contacts",
-                                $skipArray: ["item", "contact"],
                                 edit: function() {
                                     avalon.router.go("contacts.detail.item.edit")
                                 },
@@ -183,7 +182,8 @@
                                     }
                                 ],
                                 id: NaN,
-                                contact: {},
+                                contact: {
+                                },
                                 item: {}
                             })
                             vmodel.$watch("id", function(a) {
