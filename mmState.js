@@ -153,7 +153,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
         }
         avalon.router.get(opts.url, function() {
             var that = this, args = arguments
-            var promises = []
+            var promises = [], nodeList = [], funcList = []
             getFn(opts, "onChange").apply(that, args)
             var vmodes = getVModels(opts)
             var topCtrlName = vmodes[vmodes.length - 1]
@@ -178,13 +178,14 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
                     if (node) {
                         var promise = fromPromise(view, that.params)
-                        getFn(opts, "onBeforeLoad").call(node, that)
-                        promise.then(function(s) {
-                            avalon.innerHTML(node, s)
-                            getFn(opts, "onAfterLoad").call(node, that)
-                            avalon.scan(node, vmodes)
-                        }, function(msg) {
-                            avalon.log(warnings + " " + msg)
+                        nodeList.push(node)
+                        funcList.push(function() {
+                            promise.then(function(s) {
+                                avalon.innerHTML(node, s)
+                                avalon.scan(node, vmodes)
+                            }, function(msg) {
+                                avalon.log(warnings + " " + msg)
+                            })
                         })
                         promises.push(promise)
                     } else {
@@ -192,8 +193,14 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     }
                 }    
             })
-
-            return Promise.all(promises)
+            getFn(opts, "onBeforeLoad").call(nodeList, that)
+            avalon.each(funcList, function(key, func) {
+                func()
+            })
+            
+            return Promise.all(promises).then(function(values) {
+                getFn(opts, "onAfterLoad").call(nodeList, that)
+            })
 
         }, opts)
 
