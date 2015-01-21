@@ -65,13 +65,17 @@ mmRouter与mmHistory的API列表
 ----------------------------------------
 * `avalon.history.start(opts)`， 开始监听URL变化，opts。 enter image description here
 
-  ![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg")
+  ![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg)
 
 * `avalon.history.stop()`， 中止监听URL变化。
-* `avalon.router.get(path, callback)`，用于添加路由规则。第一个为路由规则，<br>
-如"/aaa", "/bbb/:bbbId","/eee/{eeeId}/ddd/{dddId:[0-9]{6}}" 冒号后的东西或花括号的东西表示为参数，<br>
-花括号模式下还可以指定匹配规则。callback为回调函数，框架会将冒号后的或花括中的匹配内容传进来，<br>
-此外this对象，包含了path、 params、 query等对象与属性。
+* `avalon.router.get(path, callback)`，用于添加路由规则。第一个为路由规则，
+
+  如"/aaa", "/bbb/:bbbId","/eee/{eeeId}/ddd/{dddId:[0-9]{6}}" 冒号后的东西或花括号的东西表示为参数，
+  
+  花括号模式下还可以指定匹配规则。callback为回调函数，框架会将冒号后的或花括中的匹配内容传进来，
+  
+  此外this对象，包含了path、 params、 query等对象与属性。
+  
 ```javascript
          `'/hello/'` - 匹配'/hello/'或'/hello'
          `'/user/:id'` - 匹配 '/user/bob' 或 '/user/1234!!!' 或 '/user/' 但不匹配 '/user' 与 '/user/bob/details'
@@ -98,7 +102,8 @@ mmRouter与mmHistory的API列表
 * `avalon.router.getLastPath()` 取得最近一次跳转的路径，比如用户F5强制页面，你在ready回调中执行此方法，
 得到path，然后将它放进navigate中就能回到原来的页面了。
 [http://rubylouvre.github.io/mvvm/avalon.router.html](http://rubylouvre.github.io/mvvm/avalon.router.html)
-<h3>路由器与多个VM的协作（每个VM定义在不同的JS文件中）</h3>
+
+### 路由器与多个VM的协作（每个VM定义在不同的JS文件中）
 ```javascript
 
 //aaa.js
@@ -226,7 +231,9 @@ avalon.state(stateName: opts)
 * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
 * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
 * onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
-          我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
+
+  我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
+
 * onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
 * onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
 * abstract:  表示它不参与匹配
