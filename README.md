@@ -212,11 +212,17 @@ avalon.state(stateName: opts)
 * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
 * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
 * views: 对多个[ms-view]容器进行处理,
-    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
-    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
-    onBeforeLoad, onAfterLoad是可选
-    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
-    views的结构为
+
+  每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
+
+  template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
+
+  onBeforeLoad, onAfterLoad是可选
+
+  如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
+
+  views的结构为：
+
 ```
     {
        "": {template: "xxx", onBeforeLoad: function(){} }
