@@ -64,7 +64,7 @@ avalon.scan()
 mmRouter与mmHistory的API列表
 ----------------------------------------
 * `avalon.history.start(opts)`， 开始监听URL变化，opts。 enter image description here
-<div><img src="http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg"/></div>
+![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg")
 * `avalon.history.stop()`， 中止监听URL变化。
 * `avalon.router.get(path, callback)`，用于添加路由规则。第一个为路由规则，<br>
 如"/aaa", "/bbb/:bbbId","/eee/{eeeId}/ddd/{dddId:[0-9]{6}}" 冒号后的东西或花括号的东西表示为参数，<br>
@@ -158,12 +158,11 @@ mmState的使用
     require(["ready!", "mmState"], function() {
         //一个顶层VM
          avalon.define({
-             $id: "test" /
+             $id: "test"
          })
     })
 ```
 3、定义各种状态，内部会转换为一个路由表，交由mmRouter去处理。
-5、开始扫描
 ```javascript
     avalon.state("home", {
         controller: "test",
@@ -183,8 +182,9 @@ mmState的使用
 
     })
 ```
-注意，第一个状态，<b>必须指定controller</b>，controller为顶层VM的`$id`。
-注意，添加状态的顺序，必须先添加aaa, 再添加aaa.bbb，再添加aaa.bbb.ccc，不能先添加aaa.bbb，再添加aaa
+注意，第一个状态，__必须指定controller__，controller为顶层VM的`$id`。
+注意，添加状态的顺序，必须先添加aaa, 再添加aaa.bbb，再添加aaa.bbb.ccc，不能先添加aaa.bbb，再添加aaa。
+
 4、启动历史管理器
 ```javascript
     avalon.history.start({
@@ -204,12 +204,12 @@ avalon.state(stateName: opts)
 * stateName： 指定当前状态名
 * url:  当前状态对应的路径规则，与祖先状态们组成一个完整的匹配规则
 * controller： 指定当前所在的VM的名字（如果是顶级状态对象，必须指定）
-* views: 对多个[ms-view]容器进行处理,<br>
-    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性<br>
-    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象<br>
-    onBeforeLoad, onAfterLoad是可选<br>
-    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上<br>
-    views的结构为<br>
+* views: 对多个[ms-view]容器进行处理,
+    每个对象应拥有template, templateUrl, templateProvider, onBeforeLoad, onAfterLoad属性
+    template,templateUrl,templateProvider属性必须指定其一,要求返回一个字符串或一个Promise对象
+    onBeforeLoad, onAfterLoad是可选
+    如果不写views属性,则默认view为"",这四个属性可以直接写在opts对象上
+    views的结构为
 ```
     {
        "": {template: "xxx", onBeforeLoad: function(){} }
@@ -231,5 +231,5 @@ avalon.state(stateName: opts)
 * parentState: 父状态对象（框架内部生成）
 
 
-<p>具体可以看http://localhost:xxx/mmRouter/index2.html 示例页面</p>
+具体可以看<https://rawgit.com/RubyLouvre/mmRouter/master/index2.html>示例页面
 
