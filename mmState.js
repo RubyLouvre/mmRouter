@@ -192,7 +192,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     avalon.each(nodes, function(i, _node) {
                         if (_node === node || avalon.contains(node, _node)) return
                         if (defViewEle === _node) defViewIndex = i
-                        if (defViewEle && (defViewIndex === -1 || i < defViewIndex)) return
+                        if (defViewEle && (defViewIndex === -1 || i <= defViewIndex)) return
                         var $node = avalon(_node)
                         var _html = $node.data(defKey)
                         if (_html) {
