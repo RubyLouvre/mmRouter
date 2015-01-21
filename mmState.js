@@ -3,9 +3,13 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
     avalon.router.route = function(method, path, query) {
         path = path.trim()
         var states = this.routingTable[method]
+        var currentState = mmState.currentState
         for (var i = 0, el; el = states[i++]; ) {//el为一个个状态对象，状态对象的callback总是返回一个Promise
             var args = path.match(el.regexp)
             if (args && el.abstract !== true) {//不能是抽象状态
+                if (currentState && el.url === currentState.url) {
+                    currentState = avalon.mix(true, {}, currentState)
+                }
                 el.query = query || {}
                 el.path = path
                 el.params = {}
@@ -15,7 +19,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     this._parseArgs(args, el)
                 }
                 if (el.stateName) {
-                    mmState.transitionTo(mmState.currentState, el, args)
+                    mmState.transitionTo(currentState, el, args)
                 } else {
                     el.callback.apply(el, args)
                 }
@@ -37,6 +41,9 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
             }
         }
         if (to) {
+            if (from.url === to.url) {
+                from = avalon.mix(true, {}, from)
+            }
             if (!to.params) {
                 to.params = to.parentState ? to.parentState.params || {} : {}
             }
@@ -163,6 +170,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
             }
             topCtrlName = topCtrlName.$id
             var prevState = mmState.prevState && (mmState.prevState.stateName +'.')
+            var currentState = mmState.currentState
             avalon.each(opts.views, function(keyname, view) {
                 if (keyname.indexOf("@") >= 0) {
                     var match = keyname.split("@")
@@ -172,7 +180,8 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     viewname = keyname || ""
                     statename = stateName
                 }
-                if(!prevState || prevState.indexOf(stateName + '.') !== 0) {
+                var _stateName = stateName + '.'
+                if(!prevState || prevState === _stateName || prevState.indexOf(_stateName) !== 0 || stateName === currentState.stateName) {
                     var nodes = getViews(topCtrlName, statename)
                     var node = getNamedView(nodes, viewname)
                     var warnings = "warning: " + stateName + "状态对象的【" + keyname + "】视图对象" //+ viewname
