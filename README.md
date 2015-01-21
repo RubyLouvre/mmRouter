@@ -63,7 +63,7 @@ avalon.scan()
 ```
 mmRouter与mmHistory的API列表
 ----------------------------------------
-* `avalon.history.start(opts)`， 开始监听URL变化，opts。 enter image description here
+* `avalon.history.start(opts)`， 开始监听URL变化，opts：
 
   ![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg)
 
@@ -236,10 +236,7 @@ avalon.state(stateName: opts)
 * template: 指定当前模板，也可以为一个函数，传入opts.params作参数
 * templateUrl: 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
 * templateProvider: 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
-* onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，
-
-  我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
-
+* onChange: 当切换为当前状态时调用的回调，this指向状态对象，参数为匹配的参数，我们可以在此方法 定义此模板用到的VM， 或修改VM的属性
 * onBeforeLoad: 模板还没有插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
 * onAfterLoad: 模板插入DOM树执行的回调，this指向[ms-view]元素节点，参数为状态对象
 * abstract:  表示它不参与匹配
