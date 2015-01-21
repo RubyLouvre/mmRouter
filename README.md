@@ -64,7 +64,9 @@ avalon.scan()
 mmRouter与mmHistory的API列表
 ----------------------------------------
 * `avalon.history.start(opts)`， 开始监听URL变化，opts。 enter image description here
-![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg")
+
+  ![router2](http://htmljs.b0.upaiyun.com/uploads/1411112779022-router2.jpg")
+
 * `avalon.history.stop()`， 中止监听URL变化。
 * `avalon.router.get(path, callback)`，用于添加路由规则。第一个为路由规则，<br>
 如"/aaa", "/bbb/:bbbId","/eee/{eeeId}/ddd/{dddId:[0-9]{6}}" 冒号后的东西或花括号的东西表示为参数，<br>
