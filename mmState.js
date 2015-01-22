@@ -52,13 +52,14 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                 return to.params [el.name] || ""
             })
             mmState.transitionTo(from, to, args)
-            if(avalon.history) {
+            if(avalon.history && params) {
                 // 更新url
                 avalon.history.locked = true // 关闭历史监听，防止触发两次
+                var query = params.query ? queryToString(params.query) : ""
                 avalon.history.updateLocation(to.url.replace(/\{[^\/\}]+\}/g, function(mat) {
                     var key = mat.replace(/[\{\}]/g, '')
                     return params[key] || ''
-                }).replace(/^\//g, ''))
+                }).replace(/^\//g, '') + query)
                 avalon.history.locked = false // 开启
             }
         }
@@ -405,5 +406,13 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
             }
             throw new Error("必须先定义[" + parentName + "]")
         }
+    }
+    function queryToString(obj) {
+        if(typeof obj == 'string') return obj
+        var str = []
+        for(var i in obj) {
+            str.push(i + '=' + encodeURIComponent(obj[i]))
+        }
+        return str.length ? '?' + str.join("&") : ''
     }
 })
