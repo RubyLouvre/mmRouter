@@ -52,6 +52,15 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                 return to.params [el.name] || ""
             })
             mmState.transitionTo(from, to, args)
+            if(avalon.history) {
+                // 更新url
+                avalon.history.locked = true // 关闭历史监听，防止触发两次
+                avalon.history.updateLocation(to.url.replace(/\{[^\/\}]+\}/g, function(mat) {
+                    var key = mat.replace(/[\{\}]/g, '')
+                    return params[key] || ''
+                }).replace(/^\//g, ''))
+                avalon.history.locked = false // 开启
+            }
         }
     }
 
