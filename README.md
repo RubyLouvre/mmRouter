@@ -31,7 +31,7 @@ avalon的三柱臣之一（ 路由，动画，AJAX）
 |state.onBeforeUnload|onBeforeExit|退出状态之前回调，参数未变化|
 |state.onAfterUnload|onExit|退出状态之前回调，参数未变化|
 |state.onBeforeLoad|onBeforeLoad|view加载完成前回调，不再与节点关联，只触发一次|
-|state.onAfterLoad|onBeforeLoad|view加载完成后回调，不再与节点关联，只触发一次|
+|state.onAfterLoad|onAfterLoad|view加载完成后回调，不再与节点关联，只触发一次|
 |avalon.state.config.beforeUnload|onBeforeUnload|A=>B触发，全局，只跳转前触发一次，用以展示提示信息，规范命名，参数未变|
 |avalon.state.config.abort|onAbort|取消跳转，规范命名，参数未变|
 |avalon.state.config.unload|onUnload|全局，规范命名，参数未变|
