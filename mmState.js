@@ -1,4 +1,4 @@
-define("mmState", ["mmPromise", "mmRouter"], function() {
+define("mmState", ["mmPromise", "./mmRouter"], function() {
 //重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query, options) {
         path = path.trim()
@@ -421,7 +421,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                         }
                     }
                 // controller似乎可以缓存着
-                if(view.$controller) return resolveData()
+                if(view.$controller && view.cacheController !== false) return resolveData()
                 // 加载controller模块
                 if(view.controller) {
                     prom = promise.then(function() {
@@ -840,6 +840,7 @@ define("mmState", ["mmPromise", "mmRouter"], function() {
                     var status = xhr.status;
                     if (status > 399 && status < 600) {
                         reason.message = "templateUrl对应资源不存在或没有开启 CORS"
+                        reason.status = status
                         reject(reason)
                     } else {
                         resolve(avalon.templateCache[url] = xhr.responseText)
