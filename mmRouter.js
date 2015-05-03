@@ -267,10 +267,9 @@ define(["./mmHistory"], function () {
         Router.prototype.setLastPath = function (path) {
             if (cookieID) {
                 clearTimeout(cookieID)
-                cookieID = null
             }
             localStorage.setItem("msLastPath", path)
-            setTimeout(function () {
+            cookieID = setTimeout(function () {
                 localStorage.removItem("msLastPath")
             }, 1000 * 60 * 60 * 24)
         }
