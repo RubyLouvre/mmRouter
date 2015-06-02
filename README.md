@@ -7,7 +7,7 @@ avalon的三柱臣之一（ 路由，动画，AJAX）
 
 如何从mmState迁移到new-mmState
 -----------------------------------
-1、0.5版的mmState特性
+1、新版new-mmState特性
 * 通过ms-view binding来实现视图刷新，效率更高、可用性更强
 * 调整了状态机模型，去掉累赘的逻辑
 * 明确viewname[@statename]语法规则
