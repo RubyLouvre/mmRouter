@@ -309,13 +309,13 @@ opts.viewCache 是否缓存这个模板生成的dom，设置会覆盖dom元素�
 对多个[ms-view]容器进行处理,每个对象应拥有template, templateUrl, templateProvider，可以给每个对象搭配一个controller||controllerUrl||controllerProvider属性
 
 *     views的结构为
-*<pre>
-*     {
-*        "": {template: "xxx"}
-*        "aaa": {template: "xxx"}
-*        "bbb@": {template: "xxx"}
-*     }
-*</pre>
+```
+      {
+         "": {template: "xxx"}
+         "aaa": {template: "xxx"}
+         "bbb@": {template: "xxx"}
+      }
+```
 * views的每个键名(keyname)的结构为viewname@statename，如果名字不存在@，则viewname直接为keyname，statename为opts.stateName 如果名字存在@, viewname为match[0], statename为match[1]
 * opts.views.{viewname}.template 指定当前模板，也可以为一个函数，传入opts.params作参数，* opts.views.viewname.cacheController 是否缓存view的控制器，默认true
 * opts.views.{viewname}.templateUrl 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
