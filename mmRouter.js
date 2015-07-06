@@ -224,7 +224,7 @@ define(["./mmHistory"], function() {
                 },
                 pattern: "0|1"
             },
-            int: {
+            'int': {
                 decode: function(val) {
                     return parseInt(val, 10);
                 },
