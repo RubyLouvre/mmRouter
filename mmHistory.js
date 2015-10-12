@@ -1,3 +1,9 @@
+/*
+ * 
+ * version 0.7
+ * built in 2015.10.12
+ */
+
 define(["avalon"], function(avalon) {
     var anchorElement = document.createElement('a')
 
@@ -241,9 +247,9 @@ define(["avalon"], function(avalon) {
     //劫持页面上所有点击事件，如果事件源来自链接或其内部，
     //并且它不会跳出本页，并且以"#/"或"#!/"开头，那么触发updateLocation方法
     avalon.bind(document, "click", function(event) {
-        var defaultPrevented = "defaultPrevented" in event ? event['defaultPrevented'] : event.returnValue === false,
-            routeElementJudger = avalon.history.options.routeElementJudger
-        if (defaultPrevented || event.ctrlKey || event.metaKey || event.which === 2)
+        var defaultPrevented = "defaultPrevented" in event ? event['defaultPrevented'] : event.returnValue === false
+
+        if (!History.started || defaultPrevented || event.ctrlKey || event.metaKey || event.which === 2)
             return
         var target = event.target
         while (target.nodeName !== "A") {
@@ -261,6 +267,7 @@ define(["avalon"], function(avalon) {
             }
             var hash = href.replace(prefix, "").trim()
             if(!(href.indexOf(prefix) === 0 && hash !== "")) {
+                var routeElementJudger = avalon.history.options.routeElementJudger
                 hash = routeElementJudger(target, href)
                 if(hash === true) hash = href
             }
