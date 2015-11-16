@@ -1,7 +1,7 @@
 /*
  * 
- * version 0.7
- * built in 2015.10.12
+ * version 0.8
+ * built in 2015.11.16
  */
 
 define(["avalon"], function(avalon) {
@@ -137,7 +137,10 @@ define(["avalon"], function(avalon) {
             // 支持popstate 就监听popstate
             // 支持hashchange 就监听hashchange
             // 否则的话只能每隔一段时间进行检测了
-            function checkUrl(e) {
+            function checkUrl() {
+                if(!History.started){
+                    return false
+                }
                 var iframe = that.iframe
                 if (that.monitorMode === "iframepoll" && !iframe) {
                     return false
