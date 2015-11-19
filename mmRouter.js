@@ -160,7 +160,6 @@ define(["./mmHistory"], function () {
             if (hash.charAt(0) === "/")
                 hash = hash.slice(1)// 修正出现多扛的情况 fix http://localhost:8383/index.html#!//
             // 在state之内有写history的逻辑
-
             avalon.history && avalon.history.navigate(hash, false)
             // 只是写历史而已
             if (!options.silent && this.lastHash !== hash) {

@@ -217,9 +217,9 @@ define(["avalon"], function (avalon) {
         },
         // 触发预先绑定的回调
         fireUrlChange: function (fragment) {
-            if (!this.matchRoot()) {
-                return false
-            }
+//            if (!this.matchRoot()) {
+//                return false
+//            }
             fragment = this.fragment = this.getFragment(fragment)
 
             if (avalon.router) {
