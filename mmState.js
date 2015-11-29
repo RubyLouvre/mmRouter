@@ -937,11 +937,11 @@ define(["./mmPromise", "./mmRouter"], function () {
             callback && callback($ctrl)
         }
         if (window.requirejs) {
-            requirejs([url], wrapper)
+            requirejs(url, wrapper)
         } else if (typeof require === "function" && require.ensure) {
-            require.ensure([url], wrapper)
+            wrapper(require(wrapper))
         } else if (avalon.require) {
-            avalon.require([url], wrapper)
+            avalon.require(url, wrapper)
         }
     }
 
