@@ -226,7 +226,10 @@ define(["./mmHistory"], function () {
                 }
             },
             string: {
-                pattern: "[^\\/]*"
+                pattern: "[^\\/]*",
+                decode: function(val){
+                	return val;
+                }
             },
             bool: {
                 decode: function (val) {
