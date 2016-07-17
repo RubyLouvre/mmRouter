@@ -13,9 +13,12 @@
     "router",
     "avalon"
   ],
-  "dependencies": {},
+  "dependencies": {
+      "avalon2": "^2.1.0",
+      "webpack": "^1.13.1"
+  },
   "devDependencies": {
-    "avalon": "^2.1.0"
+    "avalon2": "^2.1.0"
   },
   "bugs": {
     "url": "https://github.com/RubyLouvre/mmRouter/issues"
