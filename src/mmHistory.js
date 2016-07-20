@@ -225,24 +225,21 @@ function sameOrigin(href) {
 //并且它不会跳出本页，并且以"#/"或"#!/"开头，那么触发updateLocation方法
 // 
 avalon.bind(document, "click", function (e) {
+    //https://github.com/angular/angular.js/blob/master/src/ng/location.js
     //下面十种情况将阻止进入路由系列
     //1. 路由器没有启动
     if (!mmHistory.started) {
         return
     }
-    //2. 不是左键点击
-    if (1 !== which(e)) {
+    //2. 不是左键点击或使用组合键
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2 || e.button === 2) {
         return
     }
-    //3. 使用组合钕
-    if (e.metaKey || e.ctrlKey || e.shiftKey) {
-        return
-    }
-    //4. 此事件已经被阻止
+    //3. 此事件已经被阻止
     if (e.returnValue === false) {
         return
     }
-    //5. 目标元素不A标签,或不在A标签之内
+    //4. 目标元素不A标签,或不在A标签之内
     var el = e.path ? e.path[0] : e.target
     while (el.nodeName !== "A") {
         el = el.parentNode
@@ -250,22 +247,23 @@ avalon.bind(document, "click", function (e) {
             return
         }
     }
-    //6. 没有定义href属性或在hash模式下,只有一个#
-    var href = el.getAttribute('href') || el.getAttribute("xlink:href") || ''
+    //5. 没有定义href属性或在hash模式下,只有一个#
+    //IE6/7直接用getAttribute返回完整路径
+    var href = el.getAttribute('href', 2) || el.getAttribute("xlink:href") || ''
     if (href.slice(0, 2) !== '#!') {
         return
     }
 
-    //7. 目标链接是用于下载资源或指向外部
+    //6. 目标链接是用于下载资源或指向外部
     if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
         return
 
-    //8. 只是邮箱地址
+    //7. 只是邮箱地址
     if (href.indexOf('mailto:') > -1) {
         return
     }
-    //9. 目标链接要新开窗口
-    if (!targetIsThisWindow(el.target)) {
+    //8. 目标链接要新开窗口
+    if (el.target && el.target !== '_self') {
         return
     }
 
@@ -283,14 +281,7 @@ avalon.bind(document, "click", function (e) {
 
 })
 
-//判定A标签的target属性是否指向自身
-//thanks https://github.com/quirkey/sammy/blob/master/lib/sammy.js#L219
-function targetIsThisWindow(targetWindow) {
-    if (!targetWindow || targetWindow === window.name || targetWindow === '_self' || (targetWindow === 'top' && window == window.top)) {
-        return true
-    }
-    return false
-}
+
 //得到页面第一个符合条件的A标签
 function getFirstAnchor(list) {
     for (var i = 0, el; el = list[i++]; ) {
