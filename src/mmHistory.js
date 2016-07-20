@@ -4,8 +4,9 @@
  * https://github.com/flatiron/director/blob/master/lib/director/browser.js
  * https://github.com/visionmedia/page.js/blob/master/page.js
  */
-var avalon = require('avalon2')
-
+if(typeof window.avalon !== 'undefined'){
+    throw 'must add avalon.js'
+}
 var location = document.location
 var oldIE = avalon.msie <= 7
 var supportPushState = !!(window.history.pushState)
@@ -126,6 +127,7 @@ var mmHistory = {
         }
     },
     setHash: function (s) {
+        console.log('setHash',s)
         // Mozilla always adds an entry to the history
         switch (this.mode) {
             case 'iframepoll':
@@ -138,7 +140,7 @@ var mmHistory = {
                 this.fire()
                 break
             default:
-                console.log('sethash')
+               // console.log('sethash')
                 location.hash = (s[0] === '/') ? s : '/' + s
                 break
         }
