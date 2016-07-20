@@ -4,14 +4,20 @@
  * https://github.com/flatiron/director/blob/master/lib/director/browser.js
  * https://github.com/visionmedia/page.js/blob/master/page.js
  */
-if(typeof window.avalon !== 'undefined'){
-    throw 'must add avalon.js'
-}
+
 var location = document.location
 var oldIE = avalon.msie <= 7
 var supportPushState = !!(window.history.pushState)
 var supportHashChange = !!("onhashchange" in window && (!window.VBArray || !oldIE))
-
+var defaults = {
+    root: "/",
+    html5Mode: false,
+    hashPrefix: "!",
+    iframeID: null, //IE6-7，如果有在页面写死了一个iframe，这样似乎刷新的时候不会丢掉之前的历史
+    interval: 50, //IE6-7,使用轮询，这是其时间时隔
+    fireAnchor: true, //决定是否将滚动条定位于与hash同ID的元素上
+    routeElementJudger: avalon.noop // 判断a元素是否是触发router切换的链接
+}
 var mmHistory = {
     hash: getHash(location.href),
     check: function () {
@@ -35,11 +41,15 @@ var mmHistory = {
         }
 
     },
-    start: function (html5Mode) {
+    start: function (options) {
         if (this.started)
             throw new Error('avalon.history has already been started')
         this.started = true
         //监听模式
+
+        options = avalon.mix({}, defaults, options || {})
+        var html5Mode = options.html5Mode
+        this.options = options
         this.mode = html5Mode ? "popstate" : "hashchange"
         if (!supportPushState) {
             if (html5Mode) {
@@ -74,6 +84,7 @@ var mmHistory = {
             case "iframepoll":
                 avalon.ready(function () {
                     var iframe = document.createElement('iframe')
+                    iframe.id = option.iframeID
                     iframe.style.display = 'none'
                     document.body.appendChild(iframe)
                     mmHistory.iframe = iframe
@@ -90,7 +101,7 @@ var mmHistory = {
 
                     mmHistory.intervalID = window.setInterval(function () {
                         mmHistory.check()
-                    }, 50)
+                    }, options.interval)
 
                 })
                 break
@@ -119,15 +130,16 @@ var mmHistory = {
         this.started = false
     },
     navigate: function (s, t) {//s为hash, t表示是否重写
-        avalon.log(s)
-        t && mmHistory.setHash(s)
+        avalon.log('navigate', s)
+        //  t && mmHistory.setHash(s)
         if (avalon.router) {
             avalon.router.setLastPath(s)//保存到本地储存或cookie
             avalon.router.navigate(s)
         }
     },
     setHash: function (s) {
-        console.log('setHash',s)
+        console.log('setHash', s)
+
         // Mozilla always adds an entry to the history
         switch (this.mode) {
             case 'iframepoll':
@@ -140,8 +152,9 @@ var mmHistory = {
                 this.fire()
                 break
             default:
-               // console.log('sethash')
-                location.hash = (s[0] === '/') ? s : '/' + s
+                // console.log('sethash')
+                location.hash = this.options.hashPrefix + s
+
                 break
         }
         return this
@@ -169,12 +182,16 @@ var mmHistory = {
         }
         return path
     },
-   
     onHashChanged: function (e) {
-        var newURL = e && e.newURL || getHash(location.href)
-        var url = mmHistory.mode === 'popstate' ? mmHistory.getPath() : newURL.replace(/.*#/, '')
-        console.log(url,'---',e)
-        mmHistory.setHash( url.charAt(0) === '/' ? url : '/' + url)
+        var hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() : 
+                location.href.replace(/.*#!?/, '')
+        avalon.log('onHashChanged', hash)
+        hash = hash.charAt(0) === '/' ? hash : '/' + hash
+        if (hash !== mmHistory.hash) {
+            mmHistory.hash = hash
+            mmHistory.navigate(hash, true)
+        }
+
     }
 }
 
@@ -187,7 +204,11 @@ function getHash(path) {
     // 又比如 http://www.cnblogs.com/rubylouvre/#!/home/q={%22thedate%22:%2220121010~20121010%22}
     // firefox 15 => #!/home/q={"thedate":"20121010~20121010"}
     // 其他浏览器 => #!/home/q={%22thedate%22:%2220121010~20121010%22}
-    return decodeURI(path.slice(path.indexOf("#")))
+    var index = path.indexOf("#")
+    if (index === -1) {
+        return ''
+    }
+    return decodeURI(path.slice(index))
 }
 function which(e) {
     return null === e.which ? e.button : e.which
@@ -231,7 +252,7 @@ avalon.bind(document, "click", function (e) {
     }
     //6. 没有定义href属性或在hash模式下,只有一个#
     var href = el.getAttribute('href') || el.getAttribute("xlink:href") || ''
-    if (href.slice(0,2) !== '#!') {
+    if (href.slice(0, 2) !== '#!') {
         return
     }
 
@@ -249,10 +270,17 @@ avalon.bind(document, "click", function (e) {
     }
 
     e.preventDefault()
-    console.log('222222222')
-    href = href.replace('#!','')
-    mmHistory.navigate(href, true)
-    mmHistory.fireAnchor && scrollToAnchorId(href)
+    var hash = href.replace('#!', '')
+    hash = hash.charAt(0) === '/' ? hash : '/' + hash
+    if (hash !== mmHistory.hash) {
+        mmHistory.hash = hash
+
+        mmHistory.setHash(hash)
+        console.log('onclick', hash)
+        mmHistory.navigate(hash, true)
+        mmHistory.fireAnchor && scrollToAnchorId(hash.slice(1))
+    }
+
 })
 
 //判定A标签的target属性是否指向自身
