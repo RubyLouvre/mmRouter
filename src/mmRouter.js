@@ -7,120 +7,16 @@
 var mmHistory = require('./mmHistory')
 var storage = require('./storage')
 
-
 function Router() {
-    var table = {}
-    "get,post,delete,put".replace(avalon.rword, function (name) {
-        table[name] = []
-    })
-    this.routingTable = table
+    this.rules = []
 }
 
 
+var placeholder = /([:*])(\w+)|\{(\w+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g
 Router.prototype = storage
-
 avalon.mix(storage, {
-    //当地址栏无法匹配任何已定义的路由规则时就会执行这个回调
     error: function (callback) {
         this.errorback = callback
-    },
-    //添加一个路由规则
-    add: function (method, path, callback, opts) {
-        var array = this.routingTable[method.toLowerCase()]
-        if (path.charAt(0) !== "/") {
-            throw "path必须以/开头"
-        }
-        opts = opts || {}
-        opts.callback = callback
-        if (path.length > 2 && path.charAt(path.length - 1) === "/") {
-            path = path.slice(0, -1)
-            opts.last = "/"
-        }
-        avalon.Array.ensure(array, this._pathToRegExp(path, opts))
-    },
-    //判定当前URL与已有状态对象的路由规则是否符合
-    route: function (method, path, query) {
-        path = path.trim()
-        var states = this.routingTable[method]
-        for (var i = 0, el; el = states[i++]; ) {
-            var args = path.match(el.regexp)
-            if (args) {
-                el.query = query || {}
-                el.path = path
-                el.params = {}
-                var keys = el.keys
-                args.shift()
-                if (keys.length) {
-                    parseArgs(args, el)
-                }
-                return  el.callback.apply(el, args)
-            }
-        }
-        if (this.errorback) {
-            this.errorback()
-        }
-    },
-    /*
-     *  @interface avalon.router.redirect
-     *  @param hash 访问的url hash
-     */
-    redirect: function (hash) {
-        this.navigate(hash, {replace: true})
-    },
-    /*
-     *  @interface avalon.router.navigate
-     *  @param hash 访问的url hash
-     *  @param options 扩展配置
-     *  @param options.replace true替换history，否则生成一条新的历史记录
-     *  @param options.silent true表示只同步url，不触发url变化监听绑定
-     */
-    navigate: function (hash, options) {
-//        var parsed = parseQuery((hash.charAt(0) !== "/" ? "/" : "") + hash),
-//                options = options || {}
-//        if (hash.charAt(0) === "/")
-//            hash = hash.slice(1)// 修正出现多扛的情况 fix http://localhost:8383/index.html#!//
-//        // 在state之内有写history的逻辑
-//        avalon.history && avalon.history.navigate(hash, false)
-//        // 只是写历史而已
-//        if (!options.silent && this.lastHash !== hash) {
-//            this.lastHash = hash
-//            this.route("get", parsed.path, parsed.query, options)
-//        }
-    },
-    /*
-     *  @interface avalon.router.when 配置重定向规则
-     *  @param path 被重定向的表达式，可以是字符串或者数组
-     *  @param redirect 重定向的表示式或者url
-     */
-    when: function (path, redirect) {
-        var me = this,
-                path = path instanceof Array ? path : [path]
-        avalon.each(path, function (index, p) {
-            me.add("get", p, function () {
-                var info = me.urlFormate(redirect, this.params, this.query)
-                me.navigate(info.path + info.query, {replace: true})
-            })
-        })
-        return this
-    },
-    /*
-     *  @interface avalon.router.get 添加一个router规则
-     *  @param path url表达式
-     *  @param callback 对应这个url的回调
-     */
-    get: function (path, callback) {
-    },
-    urlFormate: function (url, params, query) {
-        var query = query ? queryToString(query) : "",
-                hash = url.replace(placeholder, function (mat) {
-                    var key = mat.replace(/[\{\}]/g, '').split(":")
-                    key = key[0] ? key[0] : key[1]
-                    return params[key] !== undefined ? params[key] : ''
-                }).replace(/^\//g, '')
-        return {
-            path: hash,
-            query: query
-        }
     },
     _pathToRegExp: function (pattern, opts) {
         var keys = opts.keys = [],
@@ -151,6 +47,103 @@ avalon.mix(storage, {
         opts.regexp = new RegExp(compiled, sensitive ? 'i' : undefined);
         return opts
 
+    },
+    //添加一个路由规则
+    add: function (path, callback, opts) {
+        var array = this.rules
+        if (path.charAt(0) !== "/") {
+            throw "path必须以/开头"
+        }
+        opts = opts || {}
+        opts.callback = callback
+        if (path.length > 2 && path.charAt(path.length - 1) === "/") {
+            path = path.slice(0, -1)
+            opts.last = "/"
+        }
+        avalon.Array.ensure(array, this._pathToRegExp(path, opts))
+    },
+    //判定当前URL与已有状态对象的路由规则是否符合
+    route: function (path, query) {
+        path = path.trim()
+        var rules = this.rules
+        for (var i = 0, el; el = rules[i++]; ) {
+            var args = path.match(el.regexp)
+            console.log(args)
+            if (args) {
+                el.query = query || {}
+                el.path = path
+                el.params = {}
+                var keys = el.keys
+                args.shift()
+                if (keys.length) {
+                    this._parseArgs(args, el)
+                }
+                return  el.callback.apply(el, args)
+            }
+        }
+        if (this.errorback) {
+            this.errorback()
+        }
+    },
+    _parseArgs: function (match, stateObj) {
+        var keys = stateObj.keys
+        for (var j = 0, jn = keys.length; j < jn; j++) {
+            var key = keys[j]
+            var value = match[j] || ""
+            if (typeof key.decode === "function") {//在这里尝试转换参数的类型
+                var val = key.decode(value)
+            } else {
+                try {
+                    val = JSON.parse(value)
+                } catch (e) {
+                    val = value
+                }
+            }
+            match[j] = stateObj.params[key.name] = val
+        }
+    },
+    /*
+     *  @interface avalon.router.redirect
+     *  @param hash 访问的url hash
+     */
+    redirect: function (hash) {
+        this.navigate(hash)
+    },
+    /*
+     *  @interface avalon.router.navigate
+     *  @param hash 访问的url hash     */
+    navigate: function (hash) {
+        var parsed = parseQuery(hash)
+        // 只是写历史而已
+        this.route(parsed.path, parsed.query)
+    },
+    /*
+     *  @interface avalon.router.when 配置重定向规则
+     *  @param path 被重定向的表达式，可以是字符串或者数组
+     *  @param redirect 重定向的表示式或者url
+     */
+    when: function (path, redirect) {
+        var me = this,
+                path = path instanceof Array ? path : [path]
+        avalon.each(path, function (index, p) {
+            me.add(p, function () {
+                var info = me.urlFormate(redirect, this.params, this.query)
+                me.navigate(info.path + info.query)
+            })
+        })
+        return this
+    },
+    urlFormate: function (url, params, query) {
+        var query = query ? queryToString(query) : "",
+                hash = url.replace(placeholder, function (mat) {
+                    var key = mat.replace(/[\{\}]/g, '').split(":")
+                    key = key[0] ? key[0] : key[1]
+                    return params[key] !== undefined ? params[key] : ''
+                }).replace(/^\//g, '')
+        return {
+            path: hash,
+            query: query
+        }
     },
     /* *
      `'/hello/'` - 匹配'/hello/'或'/hello'
@@ -197,12 +190,7 @@ avalon.mix(storage, {
 })
 
 
-
-
-
-
-
-
+module.exports = avalon.router = new Router
 
 
 function parseQuery(url) {
@@ -230,7 +218,7 @@ function queryToString(obj) {
         return obj
     var str = []
     for (var i in obj) {
-        if (i == "query")
+        if (i === "query")
             continue
         str.push(i + '=' + encodeURIComponent(obj[i]))
     }
@@ -238,17 +226,6 @@ function queryToString(obj) {
 }
 
 
-
-
-var placeholder = /([:*])(\w+)|\{(\w+)(?:\:((?:[^{}\\]+|\\.|\{(?:[^{}\\]+|\\.)*\})+))?\}/g
-
-
-
-"get,put,delete,post".replace(avalon.rword, function (method) {
-    return storage[method] = function (a, b, c) {
-        this.add(method, a, b, c)
-    }
-})
 function quoteRegExp(string, pattern, isOptional) {
     var result = string.replace(/[\\\[\]\^$*+?.()|{}]/g, "\\$&");
     if (!pattern)
@@ -256,27 +233,3 @@ function quoteRegExp(string, pattern, isOptional) {
     var flag = isOptional ? '?' : '';
     return result + flag + '(' + pattern + ')' + flag;
 }
-
-
-
-function parseArgs(match, stateObj) {
-    var keys = stateObj.keys
-    for (var j = 0, jn = keys.length; j < jn; j++) {
-        var key = keys[j]
-        var value = match[j] || ""
-        if (typeof key.decode === "function") {//在这里尝试转换参数的类型
-            var val = key.decode(value)
-        } else {
-            try {
-                val = JSON.parse(value)
-            } catch (e) {
-                val = value
-            }
-        }
-        match[j] = stateObj.params[key.name] = val
-    }
-}
-
-
-module.exports = avalon.router = new Router
-

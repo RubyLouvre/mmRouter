@@ -182,14 +182,25 @@ var mmHistory = {
         }
         return path
     },
-    onHashChanged: function (e) {
-        var hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() : 
-                location.href.replace(/.*#!?/, '')
-        avalon.log('onHashChanged', hash)
+    onHashChanged: function (hash, onClick) {
+        if (!onClick) {
+            hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() :
+                    location.href.replace(/.*#!?/, '')
+        }
+        hash = decodeURIComponent(hash)
+                
         hash = hash.charAt(0) === '/' ? hash : '/' + hash
         if (hash !== mmHistory.hash) {
             mmHistory.hash = hash
+            avalon.log('onHashChanged', hash)
+            if (onClick) {
+                mmHistory.setHash(hash)
+            }
+            
             mmHistory.navigate(hash, true)
+            if (onClick && mmHistory.options.fireAnchor) {
+                scrollToAnchorId(hash.slice(1))
+            }
         }
 
     }
@@ -268,19 +279,12 @@ avalon.bind(document, "click", function (e) {
     }
 
     e.preventDefault()
-    var hash = href.replace('#!', '')
-    hash = hash.charAt(0) === '/' ? hash : '/' + hash
-    if (hash !== mmHistory.hash) {
-        mmHistory.hash = hash
-
-        mmHistory.setHash(hash)
-        console.log('onclick', hash)
-        mmHistory.navigate(hash, true)
-        mmHistory.fireAnchor && scrollToAnchorId(hash.slice(1))
-    }
+    mmHistory.onHashChanged(href.replace('#!', ''), true)
 
 })
+function fireRouter() {
 
+}
 
 //得到页面第一个符合条件的A标签
 function getFirstAnchor(list) {
@@ -304,5 +308,6 @@ function scrollToAnchorId(hash, el) {
 function isHasHash() {
     return !(location.hash === '' || location.hash === '#')
 }
+
 
 module.exports = avalon.history = mmHistory
