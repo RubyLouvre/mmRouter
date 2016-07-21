@@ -1,3 +1,30 @@
+mmRouter
+====
+
+avalon的三柱臣之一（ 路由，动画，AJAX）
+
+使用时需要先引入avalon2,或者与avalon全部打成一个JS文件
+
+```html
+<script src="./dist/avalon.js"></script>
+<script src="./dist/mmRouter.js"></script>
+
+```
+
+我们需要先定义路由规则,再启动history管理器.
+```
+avalon.route.add(rule1, cb1)
+avalon.route.add(rule2, cb2)
+avalon.route.add(rule3, cb3)
+avalon.route.add(rule4, cb4)
+//...
+avalon.history.start()
+
+```
+
+然后页面上所有要跳转的链接全部改成以｀#!`开头.
+
+```html
 <!DOCTYPE html>
 <html>
     <head>
@@ -50,3 +77,5 @@
 
     </body>
 </html>
+
+```
