@@ -26,12 +26,13 @@ var api = heredoc(function () {
 
 module.exports = {
     entry: {
-        mmRouter: './src/mmRouter'
+        mmRouter: './src/mmRouter',
+        built: './src/built'
     },
     output: {
         path: path.join(__dirname, 'dist'),
-        filename: 'mmRouter.js',
-        // libraryTarget: 'umd',
+        filename: '[name].js',
+         //libraryTarget: 'umd',
         // library: 'avalon'
     }, //页面引用的文件
 
@@ -46,16 +47,9 @@ module.exports = {
     },
     plugins: [
         new webpack.BannerPlugin('built in ' + snow + ' by 司徒正美\n' + api),
-//        new webpack.ProvidePlugin({
-//            $: 'jquery', //加载$全局
-//            'window.avalon': 'avalon2' //加载 avalon 全局 [******这里必须强制 window.avalon]
-//        }),
+
     ],
     resolve: {
-//        alias: {
-//            'jquery': path.resolve(__dirname, 'app/_lib/jQuery-3.0.0.js'),
-//            'avalon': path.resolve(node_modules, 'avalon2/dist/avalon.js')//这里就可以改成avalon.modern
-//        },
         extensions: ['.js', '', '.css']
     }
 }

@@ -68,7 +68,6 @@ avalon.mix(storage, {
         var rules = this.rules
         for (var i = 0, el; el = rules[i++]; ) {
             var args = path.match(el.regexp)
-            console.log(args)
             if (args) {
                 el.query = query || {}
                 el.path = path
@@ -214,7 +213,7 @@ function parseQuery(url) {
 
 
 function queryToString(obj) {
-    if (typeof obj == 'string')
+    if (typeof obj === 'string')
         return obj
     var str = []
     for (var i in obj) {

@@ -131,15 +131,12 @@ var mmHistory = {
     },
     navigate: function (s, t) {//s为hash, t表示是否重写
         avalon.log('navigate', s)
-        //  t && mmHistory.setHash(s)
         if (avalon.router) {
             avalon.router.setLastPath(s)//保存到本地储存或cookie
             avalon.router.navigate(s)
         }
     },
     setHash: function (s) {
-        console.log('setHash', s)
-
         // Mozilla always adds an entry to the history
         switch (this.mode) {
             case 'iframepoll':
@@ -282,9 +279,6 @@ avalon.bind(document, "click", function (e) {
     mmHistory.onHashChanged(href.replace('#!', ''), true)
 
 })
-function fireRouter() {
-
-}
 
 //得到页面第一个符合条件的A标签
 function getFirstAnchor(list) {
