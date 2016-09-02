@@ -74,14 +74,13 @@ avalon.scan(document.body)
 ```
 
 
-mmHistory.start方法的配置项有
+mmHistory.start方法的配置项
 
-```
-root: "/",
-html5: false,
-hashPrefix: "!",
-iframeID: null, //IE6-7，如果有在页面写死了一个iframe，这样似乎刷新的时候不会丢掉之前的历史
-interval: 50, //IE6-7,使用轮询，这是其时间时隔,
+```javascript
+root: "/", //根路径
+html5: false, //是否使用HTML5 history 
+hashPrefix: "!",//
 autoScroll: false //滚动
 
 ```
+

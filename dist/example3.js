@@ -9235,7 +9235,7 @@
 		            case "iframepoll":
 		                avalon.ready(function () {
 		                    var iframe = document.createElement('iframe')
-		                    iframe.id = option.iframeID
+		                    iframe.id = options.iframeID
 		                    iframe.style.display = 'none'
 		                    document.body.appendChild(iframe)
 		                    mmHistory.iframe = iframe
