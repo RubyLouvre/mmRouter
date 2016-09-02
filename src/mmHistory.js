@@ -14,9 +14,8 @@ var defaults = {
     html5: false,
     hashPrefix: "!",
     iframeID: null, //IE6-7，如果有在页面写死了一个iframe，这样似乎刷新的时候不会丢掉之前的历史
-    interval: 50, //IE6-7,使用轮询，这是其时间时隔
-    fireAnchor: true, //决定是否将滚动条定位于与hash同ID的元素上
-    routeElementJudger: avalon.noop // 判断a元素是否是触发router切换的链接
+    interval: 50, //IE6-7,使用轮询，这是其时间时隔,
+    autoScroll: false
 }
 var mmHistory = {
     hash: getHash(location.href),
@@ -46,13 +45,16 @@ var mmHistory = {
             throw new Error('avalon.history has already been started')
         this.started = true
         //监听模式
-        if(typeof options === 'boolean'){
+        if (typeof options === 'boolean') {
             options = {
                 html5: options
             }
         }
 
         options = avalon.mix({}, defaults, options || {})
+        if (options.fireAnchor) {
+            options.autoScroll = true
+        }
         var html5Mode = options.html5
         this.options = options
         avalon.log(this.options)
@@ -90,7 +92,7 @@ var mmHistory = {
             case "iframepoll":
                 avalon.ready(function () {
                     var iframe = document.createElement('iframe')
-                    iframe.id = option.iframeID
+                    iframe.id = options.iframeID
                     iframe.style.display = 'none'
                     document.body.appendChild(iframe)
                     mmHistory.iframe = iframe
@@ -149,9 +151,9 @@ var mmHistory = {
                 this.writeFrame(s)
                 break
             case 'popstate':
-                
-                var path = (this.options.root+'/'+  s).replace(/\/+/g,'/')
-                
+
+                var path = (this.options.root + '/' + s).replace(/\/+/g, '/')
+
                 window.history.pushState({}, document.title, path)
                 // Fire an onpopstate event manually since pushing does not obviously
                 // trigger the pop event.
@@ -163,6 +165,7 @@ var mmHistory = {
 
                 break
         }
+
         return this
     },
     writeFrame: function (s) {
@@ -194,7 +197,7 @@ var mmHistory = {
                     location.href.replace(/.*#!?/, '')
         }
         hash = decodeURIComponent(hash)
-                
+
         hash = hash.charAt(0) === '/' ? hash : '/' + hash
         if (hash !== mmHistory.hash) {
             mmHistory.hash = hash
@@ -202,10 +205,10 @@ var mmHistory = {
             if (onClick) {
                 mmHistory.setHash(hash)
             }
-            
+
             mmHistory.navigate(hash, true)
-            if (onClick && mmHistory.options.fireAnchor) {
-                scrollToAnchorId(hash.slice(1))
+            if (onClick && mmHistory.options.autoScroll) {
+                autoScroll(hash.slice(1))
             }
         }
 
@@ -298,11 +301,18 @@ function getFirstAnchor(list) {
     }
 }
 
-function scrollToAnchorId(hash, el) {
-    if ((el = document.getElementById(hash))) {
+function autoScroll(hash, el) {
+    //取得页面拥有相同ID的元素
+    var elem = document.getElementById(hash)
+    if (!elem) {
+        //取得页面拥有相同name的A元素
+        elem = getFirstAnchor(document.getElementsByName(hash))
+    }
+    if (elem) {
         el.scrollIntoView()
-    } else if ((el = getFirstAnchor(document.getElementsByName(hash)))) {
-        el.scrollIntoView()
+        var offset = avalon(el).offset()
+        var elemTop = elem.getBoundingClientRect().top
+        window.scrollBy(0, elemTop - offset.top)
     } else {
         window.scrollTo(0, 0)
     }

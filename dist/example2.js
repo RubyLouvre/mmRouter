@@ -1,9 +1,3 @@
-/*!
- * built in 2016-9-2:17 by 司徒正美
- * avalon的路由组件
- *      
- *      ```
- */
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -8859,12 +8853,6 @@
 /* 2 */
 /***/ function(module, exports) {
 
-	/*!
-	 * built in 2016-9-2:17 by 司徒正美
-	 * avalon的路由组件
-	 *      
-	 *      ```
-	 */
 	/******/ (function(modules) { // webpackBootstrap
 	/******/ 	// The module cache
 	/******/ 	var installedModules = {};
@@ -9169,9 +9157,8 @@
 		    html5: false,
 		    hashPrefix: "!",
 		    iframeID: null, //IE6-7，如果有在页面写死了一个iframe，这样似乎刷新的时候不会丢掉之前的历史
-		    interval: 50, //IE6-7,使用轮询，这是其时间时隔
-		    fireAnchor: true, //决定是否将滚动条定位于与hash同ID的元素上
-		    routeElementJudger: avalon.noop // 判断a元素是否是触发router切换的链接
+		    interval: 50, //IE6-7,使用轮询，这是其时间时隔,
+		    autoScroll: false
 		}
 		var mmHistory = {
 		    hash: getHash(location.href),
@@ -9201,20 +9188,23 @@
 		            throw new Error('avalon.history has already been started')
 		        this.started = true
 		        //监听模式
-		        if(typeof options === 'boolean'){
+		        if (typeof options === 'boolean') {
 		            options = {
 		                html5: options
 		            }
 		        }
 
 		        options = avalon.mix({}, defaults, options || {})
+		        if (options.fireAnchor) {
+		            options.autoScroll = true
+		        }
 		        var html5Mode = options.html5
 		        this.options = options
 		        avalon.log(this.options)
 		        this.mode = html5Mode ? "popstate" : "hashchange"
 		        if (!supportPushState) {
 		            if (html5Mode) {
-		                avalon.warn("如果浏览器不支持HTML5 pushState，强制使用hash hack!")
+		                avalon.warn("浏览器不支持HTML5 pushState，平稳退化到onhashchange!")
 		            }
 		            this.mode = "hashchange"
 		        }
@@ -9304,9 +9294,9 @@
 		                this.writeFrame(s)
 		                break
 		            case 'popstate':
-		                
-		                var path = (this.options.root+'/'+  s).replace(/\/+/g,'/')
-		                
+
+		                var path = (this.options.root + '/' + s).replace(/\/+/g, '/')
+
 		                window.history.pushState({}, document.title, path)
 		                // Fire an onpopstate event manually since pushing does not obviously
 		                // trigger the pop event.
@@ -9318,6 +9308,7 @@
 
 		                break
 		        }
+
 		        return this
 		    },
 		    writeFrame: function (s) {
@@ -9349,7 +9340,7 @@
 		                    location.href.replace(/.*#!?/, '')
 		        }
 		        hash = decodeURIComponent(hash)
-		                
+
 		        hash = hash.charAt(0) === '/' ? hash : '/' + hash
 		        if (hash !== mmHistory.hash) {
 		            mmHistory.hash = hash
@@ -9357,10 +9348,10 @@
 		            if (onClick) {
 		                mmHistory.setHash(hash)
 		            }
-		            
+
 		            mmHistory.navigate(hash, true)
-		            if (onClick && mmHistory.options.fireAnchor) {
-		                scrollToAnchorId(hash.slice(1))
+		            if (onClick && mmHistory.options.autoScroll) {
+		                autoScroll(hash.slice(1))
 		            }
 		        }
 
@@ -9453,11 +9444,18 @@
 		    }
 		}
 
-		function scrollToAnchorId(hash, el) {
-		    if ((el = document.getElementById(hash))) {
+		function autoScroll(hash, el) {
+		    //取得页面拥有相同ID的元素
+		    var elem = document.getElementById(hash)
+		    if (!elem) {
+		        //取得页面拥有相同name的A元素
+		        elem = getFirstAnchor(document.getElementsByName(hash))
+		    }
+		    if (elem) {
 		        el.scrollIntoView()
-		    } else if ((el = getFirstAnchor(document.getElementsByName(hash)))) {
-		        el.scrollIntoView()
+		        var offset = avalon(el).offset()
+		        var elemTop = elem.getBoundingClientRect().top
+		        window.scrollBy(0, elemTop - offset.top)
 		    } else {
 		        window.scrollTo(0, 0)
 		    }

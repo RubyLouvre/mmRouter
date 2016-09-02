@@ -6,7 +6,8 @@ module.exports = {
     entry: {
         mmRouter: './src/mmRouter',
         example1: './src/example1',
-        example2: './src/example2'
+        example2: './src/example2',
+        example3: './src/example3'
     },
     output: {
         path: path.join(__dirname, 'dist'),

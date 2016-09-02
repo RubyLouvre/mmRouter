@@ -65,8 +65,8 @@
 	})
 
 	avalon.history.start({
-	    root: "/mmRouter"
-	   
+	    root: "/mmRouter",
+	    autoScroll: true
 	})
 	avalon.scan(document.body)
 
