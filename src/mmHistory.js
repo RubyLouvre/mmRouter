@@ -11,7 +11,7 @@ var supportPushState = !!(window.history.pushState)
 var supportHashChange = !!("onhashchange" in window && (!window.VBArray || !oldIE))
 var defaults = {
     root: "/",
-    html5Mode: false,
+    html5: false,
     hashPrefix: "!",
     iframeID: null, //IE6-7，如果有在页面写死了一个iframe，这样似乎刷新的时候不会丢掉之前的历史
     interval: 50, //IE6-7,使用轮询，这是其时间时隔
@@ -46,14 +46,20 @@ var mmHistory = {
             throw new Error('avalon.history has already been started')
         this.started = true
         //监听模式
+        if(typeof options === 'boolean'){
+            options = {
+                html5: options
+            }
+        }
 
         options = avalon.mix({}, defaults, options || {})
-        var html5Mode = options.html5Mode
+        var html5Mode = options.html5
         this.options = options
+        avalon.log(this.options)
         this.mode = html5Mode ? "popstate" : "hashchange"
         if (!supportPushState) {
             if (html5Mode) {
-                avalon.warn("如果浏览器不支持HTML5 pushState，强制使用hash hack!")
+                avalon.warn("浏览器不支持HTML5 pushState，平稳退化到onhashchange!")
             }
             this.mode = "hashchange"
         }
@@ -143,7 +149,10 @@ var mmHistory = {
                 this.writeFrame(s)
                 break
             case 'popstate':
-                window.history.pushState({}, document.title, s)
+                
+                var path = (this.options.root+'/'+  s).replace(/\/+/g,'/')
+                
+                window.history.pushState({}, document.title, path)
                 // Fire an onpopstate event manually since pushing does not obviously
                 // trigger the pop event.
                 this.fire()
