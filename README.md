@@ -84,3 +84,18 @@ autoScroll: false //滚动
 
 ```
 
+
+mmRouter的方法
+
+###avalon.router.add(rule, cb) 
+添加 一个路由规则与对象的回调, cb为rule规则中捕捉的参数
+
+###avalon.router.error(cb)
+
+当目标页面不匹配我们所有路由规则时, 就会执行此回调.有点像404
+
+###avalon.router.navigate(hash)
+
+手动触发对应的回调
+
+

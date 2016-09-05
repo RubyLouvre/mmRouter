@@ -101,13 +101,7 @@ avalon.mix(storage, {
             match[j] = stateObj.params[key.name] = val
         }
     },
-    /*
-     *  @interface avalon.router.redirect
-     *  @param hash 访问的url hash
-     */
-    redirect: function (hash) {
-        this.navigate(hash)
-    },
+
     /*
      *  @interface avalon.router.navigate
      *  @param hash 访问的url hash     */
