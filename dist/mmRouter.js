@@ -50,8 +50,8 @@
 	 * built in 2015.11.19
 	 */
 
-	var mmHistory = __webpack_require__(3)
-	var storage = __webpack_require__(4)
+	var mmHistory = __webpack_require__(6)
+	var storage = __webpack_require__(7)
 
 	function Router() {
 	    this.rules = []
@@ -98,7 +98,7 @@
 	    add: function (path, callback, opts) {
 	        var array = this.rules
 	        if (path.charAt(0) !== "/") {
-	            throw "path必须以/开头"
+	            avalon.error("avalon.router.add的第一个参数必须以/开头")
 	        }
 	        opts = opts || {}
 	        opts.callback = callback
@@ -134,8 +134,8 @@
 	        var keys = stateObj.keys
 	        for (var j = 0, jn = keys.length; j < jn; j++) {
 	            var key = keys[j]
-	            var value = match[j] || ""
-	            if (typeof key.decode === "function") {//在这里尝试转换参数的类型
+	            var value = match[j] || ''
+	            if (typeof key.decode === 'function') {//在这里尝试转换参数的类型
 	                var val = key.decode(value)
 	            } else {
 	                try {
@@ -283,7 +283,10 @@
 /***/ },
 /* 1 */,
 /* 2 */,
-/* 3 */
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */
 /***/ function(module, exports) {
 
 	/*!
@@ -614,7 +617,7 @@
 	module.exports = avalon.history = mmHistory
 
 /***/ },
-/* 4 */
+/* 7 */
 /***/ function(module, exports) {
 
 	

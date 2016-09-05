@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>avalon2+mmRouter</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <script src="./dist/example5.js"></script>
+        <style>
+            .tabs a{
+                display: inline-block;
+                margin-right: 1em;
+                height:20px;
+                line-height: 20px;
+                text-align: center;
+                
+            }
+        </style>
+    </head>
+    <body ms-controller="test">
+        <h1>avalon2+mmRouter</h1>
+        <p>使用webpack对 avalon与mmRouter进行打包(ms-html切换卡)</p>
+        <p class="tabs"><a id="aaa" href='#!/aaa'>aaa</a><a href='#!/bbb'>bbb</a><a href='#!/ccc'>ccc</a></p>
+       
+        <div ms-html="@main"></div>
+    </body>
+</html>

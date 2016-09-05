@@ -8,7 +8,8 @@ module.exports = {
         example1: './src/example1',
         example2: './src/example2',
         example3: './src/example3',
-        example4: './src/example4'
+        example4: './src/example4',
+        example5: './src/example5'
     },
     output: {
         path: path.join(__dirname, 'dist'),
