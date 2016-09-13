@@ -94,8 +94,13 @@ mmRouter的方法
 
 当目标页面不匹配我们所有路由规则时, 就会执行此回调.有点像404
 
-###avalon.router.navigate(hash)
+###avalon.router.navigate(hash, mode)
 
-手动触发对应的回调
+mode
+0或undefined, 不改变URL, 不产生历史实体, 执行回调
+1,            改变URL, 不产生历史实体,   执行回调
+2,            改变URL, 产生历史实体,    执行回调
+
+手动触发对应的回调 (见example5)
 
 

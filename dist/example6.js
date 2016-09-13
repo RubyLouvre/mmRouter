@@ -46,28 +46,42 @@
 
 	var avalon = __webpack_require__(1)
 	__webpack_require__(2)
+	var a = __webpack_require__(3)
+	var b = __webpack_require__(4)
+	var c = __webpack_require__(5)
 
 	var vm = avalon.define({
 	    $id: 'test',
-	    currPath: ''
+	    main: '',
+	    aaa: "第一页的内容",
+	    bbb: "第二页的内容",
+	    ccc: "第三页的内容",
 	})
-	avalon.router.add("/aaa", function (a) {
-	    vm.currPath = this.path
+	var map = {
+	    'aaa': a,
+	    'bbb': b,
+	    'ccc': c
+	}
+
+
+	avalon.router.add("/:tab", function (param) {
+	    vm.main = map[param]
 	})
-	avalon.router.add("/bbb", function (a) {
-	    vm.currPath = this.path
-	})
-	avalon.router.add("/ccc", function (a) {
-	    vm.currPath = this.path
-	})
-	avalon.router.add("/ddd/:ddd/:eee", function (a) {//:ddd为参数
-	    vm.currPath = this.path
-	})
+
 
 	avalon.history.start({
 	    root: "/mmRouter",
-	    autoScroll: true
+	    html5: true
 	})
+
+
+	var hash = avalon.history.getPath()
+	if (hash === '/exmaple6.html') {//比如一些网站没有, https://segmentfault.com/
+	    hash = '/aaa' 
+	}
+	console.log(hash)
+	avalon.router.navigate(hash, 1)//默认打开
+
 	avalon.scan(document.body)
 
 /***/ },
@@ -9547,6 +9561,24 @@
 
 	/***/ }
 	/******/ ]);
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	module.exports = "<div>\n    <p>切换卡1</p>\n    <p>{{@aaa}}</p>\n</div>"
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	module.exports = "<div>\n    <p>切换卡2</p>\n    <p>{{@bbb}}</p>\n</div>"
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = "<div>\n    <p>切换卡3</p>\n     <p>{{@ccc}}</p>\n     <p>{{new Date | date('yyyy-mm-dd HH:MM:ss')}}</p>\n</div>"
 
 /***/ }
 /******/ ]);

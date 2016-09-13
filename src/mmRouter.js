@@ -101,14 +101,23 @@ avalon.mix(storage, {
             match[j] = stateObj.params[key.name] = val
         }
     },
-
     /*
-     *  @interface avalon.router.navigate
-     *  @param hash 访问的url hash     */
-    navigate: function (hash) {
+     *  @interface avalon.router.navigate 设置历史(改变URL)
+     *  @param hash 访问的url hash   
+     */
+    navigate: function (hash, mode) {
         var parsed = parseQuery(hash)
-        // 只是写历史而已
         this.route(parsed.path, parsed.query)
+        //保存到本地储存或cookie
+        avalon.router.setLastPath(hash)
+        // 模式0, 不改变URL, 不产生历史实体, 执行回调
+        // 模式1, 改变URL, 不产生历史实体,   执行回调
+        // 模式2, 改变URL, 产生历史实体,    执行回调
+        if (mode === 1) {
+            avalon.history.setHash(hash, true)
+        } else if (mode === 2) {
+            avalon.history.setHash(hash)
+        }
     },
     /*
      *  @interface avalon.router.when 配置重定向规则

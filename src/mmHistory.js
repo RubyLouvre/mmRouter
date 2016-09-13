@@ -55,9 +55,15 @@ var mmHistory = {
         if (options.fireAnchor) {
             options.autoScroll = true
         }
+        var rootPath = options.root
+        if (!/^\//.test(rootPath)) {
+            avalon.error('root配置项必须以/字符开始, 以非/字符结束')
+        }
+        if (rootPath.length > 1) {
+            options.root = rootPath.replace(/\/$/, '')
+        }
         var html5Mode = options.html5
         this.options = options
-        avalon.log(this.options)
         this.mode = html5Mode ? "popstate" : "hashchange"
         if (!supportPushState) {
             if (html5Mode) {
@@ -137,32 +143,39 @@ var mmHistory = {
         }
         this.started = false
     },
-    navigate: function (s, t) {//s为hash, t表示是否重写
-        avalon.log('navigate', s)
-        if (avalon.router) {
-            avalon.router.setLastPath(s)//保存到本地储存或cookie
-            avalon.router.navigate(s)
-        }
-    },
-    setHash: function (s) {
+    setHash: function (s, replace) {
         // Mozilla always adds an entry to the history
         switch (this.mode) {
             case 'iframepoll':
-                this.writeFrame(s)
+                if (replace) {
+                    var iframe = this.iframe
+                    if (iframe) {
+//contentWindow 兼容各个浏览器，可取得子窗口的 window 对象。
+//contentDocument Firefox 支持，> ie8 的ie支持。可取得子窗口的 document 对象。
+                        iframe.contentWindow._hash = s
+                    }
+                } else {
+                    this.writeFrame(s)
+                }
                 break
             case 'popstate':
-
+                //http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
                 var path = (this.options.root + '/' + s).replace(/\/+/g, '/')
-
-                window.history.pushState({}, document.title, path)
+                if (replace) {
+                    window.history.replaceState({}, document.title, path)
+                } else {
+                    window.history.pushState({}, document.title, path)
+                }
                 // Fire an onpopstate event manually since pushing does not obviously
                 // trigger the pop event.
                 this.fire()
                 break
             default:
-                // console.log('sethash')
-                location.hash = this.options.hashPrefix + s
-
+                var newHash = this.options.hashPrefix + s
+                if (replace && location.hash !== newHash) {
+                    history.back()
+                }
+                location.hash = newHash
                 break
         }
 
@@ -186,7 +199,8 @@ var mmHistory = {
     },
     getPath: function () {
         var path = location.pathname
-        if (path.substr(0, 1) !== '/') {
+        var path = path.split(this.options.root)[1]
+        if (path.charAt(0) !== '/') {
             path = '/' + path
         }
         return path
@@ -205,8 +219,9 @@ var mmHistory = {
             if (onClick) {
                 mmHistory.setHash(hash)
             }
-
-            mmHistory.navigate(hash, true)
+            if (avalon.router) {
+                avalon.router.navigate(hash, 0)
+            }
             if (onClick && mmHistory.options.autoScroll) {
                 autoScroll(hash.slice(1))
             }
