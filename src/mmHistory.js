@@ -27,7 +27,7 @@ var mmHistory = {
         }
     },
     fire: function () {
-        switch (this.monitorMode) {
+        switch (this.mode) {
             case 'popstate':
                 window.onpopstate()
                 break
@@ -120,7 +120,8 @@ var mmHistory = {
                 })
                 break
         }
-
+        //页面加载时触发onHashChanged
+        this.onHashChanged()
     },
     stop: function () {
         switch (this.mode) {
