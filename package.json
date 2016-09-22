@@ -7,7 +7,7 @@
   },
   "version": "0.9.2",
   "description": "avalon官网的路由器系列",
-  "main": "mmRouter.js",
+  "main": "dist/mmRouter.js",
   "keywords": [
     "javascript",
     "router",
