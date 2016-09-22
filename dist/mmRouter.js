@@ -321,7 +321,7 @@
 	        }
 	    },
 	    fire: function () {
-	        switch (this.monitorMode) {
+	        switch (this.mode) {
 	            case 'popstate':
 	                window.onpopstate()
 	                break
@@ -414,7 +414,8 @@
 	                })
 	                break
 	        }
-
+	        //页面加载时触发onHashChanged
+	        this.onHashChanged()
 	    },
 	    stop: function () {
 	        switch (this.mode) {
@@ -633,6 +634,7 @@
 
 
 	module.exports = avalon.history = mmHistory
+
 
 /***/ },
 /* 7 */

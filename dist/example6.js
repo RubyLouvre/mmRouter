@@ -79,7 +79,6 @@
 	if (hash === '/exmaple6.html') {//比如一些网站没有, https://segmentfault.com/
 	    hash = '/aaa' 
 	}
-	console.log(hash)
 	avalon.router.navigate(hash, 1)//默认打开
 
 	avalon.scan(document.body)
@@ -8919,8 +8918,8 @@
 		 * built in 2015.11.19
 		 */
 
-		var mmHistory = __webpack_require__(6)
-		var storage = __webpack_require__(7)
+		var mmHistory = __webpack_require__(3)
+		var storage = __webpack_require__(4)
 
 		function Router() {
 		    this.rules = []
@@ -9155,10 +9154,7 @@
 	/***/ },
 	/* 1 */,
 	/* 2 */,
-	/* 3 */,
-	/* 4 */,
-	/* 5 */,
-	/* 6 */
+	/* 3 */
 	/***/ function(module, exports) {
 
 		/*!
@@ -9190,7 +9186,7 @@
 		        }
 		    },
 		    fire: function () {
-		        switch (this.monitorMode) {
+		        switch (this.mode) {
 		            case 'popstate':
 		                window.onpopstate()
 		                break
@@ -9283,7 +9279,8 @@
 		                })
 		                break
 		        }
-
+		        //页面加载时触发onHashChanged
+		        this.onHashChanged()
 		    },
 		    stop: function () {
 		        switch (this.mode) {
@@ -9503,8 +9500,9 @@
 
 		module.exports = avalon.history = mmHistory
 
+
 	/***/ },
-	/* 7 */
+	/* 4 */
 	/***/ function(module, exports) {
 
 		
@@ -9566,19 +9564,19 @@
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = "<div>\n    <p>切换卡1</p>\n    <p>{{@aaa}}</p>\n</div>"
+	module.exports = "<div><p>切换卡1</p><p>{{@aaa}}</p></div>"
 
 /***/ },
 /* 4 */
 /***/ function(module, exports) {
 
-	module.exports = "<div>\n    <p>切换卡2</p>\n    <p>{{@bbb}}</p>\n</div>"
+	module.exports = "<div><p>切换卡2</p><p>{{@bbb}}</p></div>"
 
 /***/ },
 /* 5 */
 /***/ function(module, exports) {
 
-	module.exports = "<div>\n    <p>切换卡3</p>\n     <p>{{@ccc}}</p>\n     <p>{{new Date | date('yyyy-mm-dd HH:MM:ss')}}</p>\n</div>"
+	module.exports = "<div><p>切换卡3</p><p>{{@ccc}}</p><p>{{new Date | date('yyyy-mm-dd HH:MM:ss')}}</p></div>"
 
 /***/ }
 /******/ ]);

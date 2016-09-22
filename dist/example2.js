@@ -8905,8 +8905,8 @@
 		 * built in 2015.11.19
 		 */
 
-		var mmHistory = __webpack_require__(6)
-		var storage = __webpack_require__(7)
+		var mmHistory = __webpack_require__(3)
+		var storage = __webpack_require__(4)
 
 		function Router() {
 		    this.rules = []
@@ -9141,10 +9141,7 @@
 	/***/ },
 	/* 1 */,
 	/* 2 */,
-	/* 3 */,
-	/* 4 */,
-	/* 5 */,
-	/* 6 */
+	/* 3 */
 	/***/ function(module, exports) {
 
 		/*!
@@ -9176,7 +9173,7 @@
 		        }
 		    },
 		    fire: function () {
-		        switch (this.monitorMode) {
+		        switch (this.mode) {
 		            case 'popstate':
 		                window.onpopstate()
 		                break
@@ -9269,7 +9266,8 @@
 		                })
 		                break
 		        }
-
+		        //页面加载时触发onHashChanged
+		        this.onHashChanged()
 		    },
 		    stop: function () {
 		        switch (this.mode) {
@@ -9489,8 +9487,9 @@
 
 		module.exports = avalon.history = mmHistory
 
+
 	/***/ },
-	/* 7 */
+	/* 4 */
 	/***/ function(module, exports) {
 
 		
