@@ -1,8 +1,8 @@
 var avalon = require('avalon2')
 require('../dist/mmRouter')
-var a = require('text!../tab1.html')
-var b = require('text!../tab2.html')
-var c = require('text!../tab3.html')
+var a = require('../tab1.html')
+var b = require('../tab2.html')
+var c = require('../tab3.html')
 
 var vm = avalon.define({
     $id: 'test',

@@ -16,9 +16,13 @@ module.exports = {
         path: path.join(__dirname, 'dist'),
         filename: '[name].js',
     }, //页面引用的文件
-
-    plugins: [
-    ],
+    module: {
+        loaders: [
+            //http://react-china.org/t/webpack-extracttextplugin-autoprefixer/1922/4
+            // https://github.com/b82/webpack-basic-starter/blob/master/webpack.config.js 
+            {test: /\.html$/, loader: 'raw!html-minify'},
+        ]
+    },
     resolve: {
         extensions: ['.js', '']
     }
