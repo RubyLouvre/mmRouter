@@ -107,17 +107,22 @@ avalon.mix(storage, {
      */
     navigate: function (hash, mode) {
         var parsed = parseQuery(hash)
-        this.route(parsed.path, parsed.query)
+        var newHash = this.route(parsed.path, parsed.query)
+        if(isLegalPath(newHash)){
+            hash = newHash
+        }
         //保存到本地储存或cookie
         avalon.router.setLastPath(hash)
         // 模式0, 不改变URL, 不产生历史实体, 执行回调
         // 模式1, 改变URL, 不产生历史实体,   执行回调
         // 模式2, 改变URL, 产生历史实体,    执行回调
         if (mode === 1) {
+          
             avalon.history.setHash(hash, true)
         } else if (mode === 2) {
             avalon.history.setHash(hash)
         }
+        return hash
     },
     /*
      *  @interface avalon.router.when 配置重定向规则
@@ -213,7 +218,13 @@ function parseQuery(url) {
         query: query
     }
 }
-
+function isLegalPath(path){
+    if(path === '/')
+        return true
+    if(typeof path === 'string' && path.length > 1 && path.charAt(0) === '/'){
+        return true
+    }
+}
 
 function queryToString(obj) {
     if (typeof obj === 'string')

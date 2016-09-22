@@ -73,6 +73,8 @@ avalon.scan(document.body)
 
 ```
 
+avalon.router.add的第二参数回调,可以返回一个字符串,作为新的hash来改写地址栏,详见example6, example7
+
 
 mmHistory.start方法的配置项
 

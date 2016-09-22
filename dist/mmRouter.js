@@ -153,17 +153,22 @@
 	     */
 	    navigate: function (hash, mode) {
 	        var parsed = parseQuery(hash)
-	        this.route(parsed.path, parsed.query)
+	        var newHash = this.route(parsed.path, parsed.query)
+	        if(isLegalPath(newHash)){
+	            hash = newHash
+	        }
 	        //保存到本地储存或cookie
 	        avalon.router.setLastPath(hash)
 	        // 模式0, 不改变URL, 不产生历史实体, 执行回调
 	        // 模式1, 改变URL, 不产生历史实体,   执行回调
 	        // 模式2, 改变URL, 产生历史实体,    执行回调
 	        if (mode === 1) {
+	          
 	            avalon.history.setHash(hash, true)
 	        } else if (mode === 2) {
 	            avalon.history.setHash(hash)
 	        }
+	        return hash
 	    },
 	    /*
 	     *  @interface avalon.router.when 配置重定向规则
@@ -259,7 +264,13 @@
 	        query: query
 	    }
 	}
-
+	function isLegalPath(path){
+	    if(path === '/')
+	        return true
+	    if(typeof path === 'string' && path.length > 1 && path.charAt(0) === '/'){
+	        return true
+	    }
+	}
 
 	function queryToString(obj) {
 	    if (typeof obj === 'string')
@@ -323,10 +334,10 @@
 	    fire: function () {
 	        switch (this.mode) {
 	            case 'popstate':
-	                window.onpopstate()
+	                window.onpopstate && window.onpopstate()
 	                break
 	            case 'hashchange':
-	                window.onhashchange()
+	                window.onhashchange && window.onhashchange()
 	                break
 	            default:
 	                this.onHashChanged()
@@ -504,18 +515,19 @@
 	        if (!onClick) {
 	            hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() :
 	                    location.href.replace(/.*#!?/, '')
+	            //console.log(hash, oldHash, 'ddd')
 	        }
 	        hash = decodeURIComponent(hash)
-
 	        hash = hash.charAt(0) === '/' ? hash : '/' + hash
 	        if (hash !== mmHistory.hash) {
-	            mmHistory.hash = hash
-	            avalon.log('onHashChanged', hash)
+	               mmHistory.hash = hash
+
+	            if (avalon.router) {
+	                hash = avalon.router.navigate(hash, 0)
+	            }
+	         
 	            if (onClick) {
 	                mmHistory.setHash(hash)
-	            }
-	            if (avalon.router) {
-	                avalon.router.navigate(hash, 0)
 	            }
 	            if (onClick && mmHistory.options.autoScroll) {
 	                autoScroll(hash.slice(1))
@@ -598,31 +610,45 @@
 	    }
 
 	    e.preventDefault()
+	    console.log(href.replace('#!', ''))
 	    mmHistory.onHashChanged(href.replace('#!', ''), true)
 
 	})
 
 	//得到页面第一个符合条件的A标签
-	function getFirstAnchor(list) {
+	function getFirstAnchor(name) {
+	    var list = document.getElementsByTagName('A')
 	    for (var i = 0, el; el = list[i++]; ) {
-	        if (el.nodeName === "A") {
+	        if (el.name === name) {
 	            return el
 	        }
 	    }
 	}
+	function getOffset(elem) {
+	    var position = avalon(elem).css('position'), offset
+	    if (position !== 'fixed') {
+	        offset = 0
+	    } else {
+	        offset = elem.getBoundingClientRect().bottom
+	    }
 
-	function autoScroll(hash, el) {
+	    return offset
+	}
+
+	function autoScroll(hash) {
 	    //取得页面拥有相同ID的元素
 	    var elem = document.getElementById(hash)
 	    if (!elem) {
 	        //取得页面拥有相同name的A元素
-	        elem = getFirstAnchor(document.getElementsByName(hash))
+	        elem = getFirstAnchor(hash)
 	    }
 	    if (elem) {
-	        el.scrollIntoView()
-	        var offset = avalon(el).offset()
-	        var elemTop = elem.getBoundingClientRect().top
-	        window.scrollBy(0, elemTop - offset.top)
+	        elem.scrollIntoView()
+	        var offset = getOffset(elem)
+	        if (offset) {
+	            var elemTop = elem.getBoundingClientRect().top
+	            window.scrollBy(0, elemTop - offset.top)
+	        }   
 	    } else {
 	        window.scrollTo(0, 0)
 	    }

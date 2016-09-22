@@ -4,7 +4,7 @@
         <title>avalon2+mmRouter</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <script src="./dist/example6.js"></script>
+        <script src="./dist/example7.js"></script>
         <style>
             .tabs a{
                 display: inline-block;
@@ -19,7 +19,13 @@
     <body ms-controller="test">
         <h1>avalon2+mmRouter</h1>
         <p>使用webpack对 avalon与mmRouter进行打包(ms-html切换卡)</p>
-        <p class="tabs"><a id="aaa" href='#!/aaa'>aaa</a><a href='#!/bbb'>bbb</a><a href='#!/ccc'>ccc</a></p>
+        <p class="tabs">
+            <a id="aaa" href='#!/aaa'>aaa</a><br/>
+            <a href='#!/bbb'>bbb</a><br/>
+            <a href='#!/ccc'>ccc</a><br/>
+            <a href='#!/pager-1'>aaa1</a><br/>
+            <a href='#!/pager-2'>aaa2</a><br/>
+        </p>
        
         <div ms-html="@main"></div>
     </body>
