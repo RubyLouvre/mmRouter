@@ -1,6 +1,6 @@
 
 function supportLocalStorage() {
-    try {
+    try {//看是否支持localStorage
         localStorage.setItem("avalon", 1)
         localStorage.removeItem("avalon")
         return true
@@ -25,7 +25,7 @@ if (supportLocalStorage()) {
             cookieID = null
         }
         localStorage.setItem("msLastPath", path)
-        cookieID = setTimeout(function () {
+        cookieID = setTimeout(function () {//模拟过期时间
             localStorage.removItem("msLastPath")
         }, 1000 * 60 * 60 * 24)
     }
