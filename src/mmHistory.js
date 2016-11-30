@@ -176,9 +176,9 @@ var mmHistory = {
         }
         return this
     },
+
     getPath: function() {
-        var path = location.pathname
-        var path = path.split(this.options.root)[1]
+        var path = location.pathname.replace(this.options.root, '')
         if (path.charAt(0) !== '/') {
             path = '/' + path
         }
