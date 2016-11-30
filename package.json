@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/RubyLouvre/mmRouter.git"
   },
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "avalon官网的路由器系列",
   "main": "dist/mmRouter.js",
   "keywords": [
