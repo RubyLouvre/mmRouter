@@ -19,18 +19,18 @@ var defaults = {
 }
 var mmHistory = {
     hash: getHash(location.href),
-    check: function () {
+    check: function() {
         var h = getHash(location.href)
         if (h !== this.hash) {
             this.hash = h
             this.onHashChanged()
         }
     },
-    start: function (options) {
+    start: function(options) {
         if (this.started)
             throw new Error('avalon.history has already been started')
         this.started = true
-        //监听模式
+            //监听模式
         if (typeof options === 'boolean') {
             options = {
                 html5: options
@@ -61,18 +61,18 @@ var mmHistory = {
             this.mode = "iframepoll"
         }
         avalon.log('avalon run mmHistory in the ', this.mode, 'mode')
-        // 支持popstate 就监听popstate
-        // 支持hashchange 就监听hashchange(IE8,IE9,FF3)
-        // 否则的话只能每隔一段时间进行检测了(IE6, IE7)
+            // 支持popstate 就监听popstate
+            // 支持hashchange 就监听hashchange(IE8,IE9,FF3)
+            // 否则的话只能每隔一段时间进行检测了(IE6, IE7)
         switch (this.mode) {
-            case "popstate" :
+            case "popstate":
                 // At least for now HTML5 history is available for 'modern' browsers only
                 // There is an old bug in Chrome that causes onpopstate to fire even
                 // upon initial page load. Since the handler is run manually in init(),
                 // this would cause Chrome to run it twise. Currently the only
                 // workaround seems to be to set the handler after the initial page load
                 // http://code.google.com/p/chromium/issues/detail?id=63040
-                setTimeout(function () {
+                setTimeout(function() {
                     window.onpopstate = mmHistory.onHashChanged
                 }, 500)
                 break
@@ -81,7 +81,7 @@ var mmHistory = {
                 break
             case "iframepoll":
                 //也有人这样玩 http://www.cnblogs.com/meteoric_cry/archive/2011/01/11/1933164.html
-                avalon.ready(function () {
+                avalon.ready(function() {
                     var iframe = document.createElement('iframe')
                     iframe.id = options.iframeID
                     iframe.style.display = 'none'
@@ -98,7 +98,7 @@ var mmHistory = {
                         mmHistory.onPropertyChange = onPropertyChange
                     }
 
-                    mmHistory.intervalID = window.setInterval(function () {
+                    mmHistory.intervalID = window.setInterval(function() {
                         mmHistory.check()
                     }, options.interval)
 
@@ -108,9 +108,9 @@ var mmHistory = {
         //页面加载时触发onHashChanged
         this.onHashChanged()
     },
-    stop: function () {
+    stop: function() {
         switch (this.mode) {
-            case "popstate" :
+            case "popstate":
                 window.onpopstate = avalon.noop
                 break
             case "hashchange":
@@ -129,14 +129,14 @@ var mmHistory = {
         }
         this.started = false
     },
-    setHash: function (s, replace) {
+    setHash: function(s, replace) {
         switch (this.mode) {
             case 'iframepoll':
                 if (replace) {
                     var iframe = this.iframe
                     if (iframe) {
-//contentWindow 兼容各个浏览器，可取得子窗口的 window 对象。
-//contentDocument Firefox 支持，> ie8 的ie支持。可取得子窗口的 document 对象。
+                        //contentWindow 兼容各个浏览器，可取得子窗口的 window 对象。
+                        //contentDocument Firefox 支持，> ie8 的ie支持。可取得子窗口的 document 对象。
                         iframe.contentWindow._hash = s
                     }
                 } else {
@@ -145,9 +145,9 @@ var mmHistory = {
                 break
             case 'popstate':
                 var path = (this.options.root + '/' + s).replace(/\/+/g, '/')
-                var method = replace ? 'replaceState': 'pushState'
+                var method = replace ? 'replaceState' : 'pushState'
                 history[method]({}, document.title, path)
-                // 手动触发onpopstate event
+                    // 手动触发onpopstate event
                 this.onHashChanged()
                 break
             default:
@@ -160,7 +160,7 @@ var mmHistory = {
                 break
         }
     },
-    writeFrame: function (s) {
+    writeFrame: function(s) {
         // IE support...
         var f = mmHistory.iframe
         var d = f.contentDocument || f.contentWindow.document
@@ -168,7 +168,7 @@ var mmHistory = {
         d.write("<script>_hash = '" + s + "'; onload = parent.avalon.history.syncHash;<script>")
         d.close()
     },
-    syncHash: function () {
+    syncHash: function() {
         // IE support...
         var s = this._hash
         if (s !== getHash(location.href)) {
@@ -176,27 +176,28 @@ var mmHistory = {
         }
         return this
     },
-    getPath: function () {
-        var path = location.pathname.replace(this.options.root,'')
+
+    getPath: function() {
+        var path = location.pathname.replace(this.options.root, '')
         if (path.charAt(0) !== '/') {
             path = '/' + path
         }
         return path
     },
-    onHashChanged: function (hash, clickMode) {
+    onHashChanged: function(hash, clickMode) {
         if (!clickMode) {
             hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() :
-                    location.href.replace(/.*#!?/, '')
+                location.href.replace(/.*#!?/, '')
         }
         hash = decodeURIComponent(hash)
         hash = hash.charAt(0) === '/' ? hash : '/' + hash
         if (hash !== mmHistory.hash) {
-               mmHistory.hash = hash
+            mmHistory.hash = hash
 
-            if (avalon.router) {//即mmRouter
+            if (avalon.router) { //即mmRouter
                 hash = avalon.router.navigate(hash, 0)
             }
-         
+
             if (clickMode) {
                 mmHistory.setHash(hash)
             }
@@ -228,7 +229,7 @@ function getHash(path) {
 
 //劫持页面上所有点击事件，如果事件源来自链接或其内部，
 //并且它不会跳出本页，并且以"#/"或"#!/"开头，那么触发updateLocation方法
-avalon.bind(document, "click", function (e) {
+avalon.bind(document, "click", function(e) {
     //https://github.com/asual/jquery-address/blob/master/src/jquery.address.js
     //https://github.com/angular/angular.js/blob/master/src/ng/location.js
     //下面十种情况将阻止进入路由系列
@@ -245,7 +246,7 @@ avalon.bind(document, "click", function (e) {
         return
     }
     //4. 目标元素不A标签,或不在A标签之内
-    var el = e.path ? e.path[0] : e.target
+    var el = e.path ? e.path[0] : (e.target || e.srcElement || {})
     while (el.nodeName !== "A") {
         el = el.parentNode
         if (!el || el.tagName === "BODY") {
@@ -273,7 +274,7 @@ avalon.bind(document, "click", function (e) {
     }
 
     e.preventDefault()
-    //终于达到目的地
+        //终于达到目的地
     mmHistory.onHashChanged(href.replace('#!', ''), true)
 
 })
@@ -281,14 +282,16 @@ avalon.bind(document, "click", function (e) {
 //得到页面第一个符合条件的A标签
 function getFirstAnchor(name) {
     var list = document.getElementsByTagName('A')
-    for (var i = 0, el; el = list[i++]; ) {
+    for (var i = 0, el; el = list[i++];) {
         if (el.name === name) {
             return el
         }
     }
 }
+
 function getOffset(elem) {
-    var position = avalon(elem).css('position'), offset
+    var position = avalon(elem).css('position'),
+        offset
     if (position !== 'fixed') {
         offset = 0
     } else {
@@ -311,7 +314,7 @@ function autoScroll(hash) {
         if (offset) {
             var elemTop = elem.getBoundingClientRect().top
             window.scrollBy(0, elemTop - offset.top)
-        }   
+        }
     } else {
         window.scrollTo(0, 0)
     }
