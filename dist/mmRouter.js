@@ -331,20 +331,6 @@
 	            this.onHashChanged()
 	        }
 	    },
-	    fire: function () {
-	        switch (this.mode) {
-	            case 'popstate':
-	                window.onpopstate && window.onpopstate()
-	                break
-	            case 'hashchange':
-	                window.onhashchange && window.onhashchange()
-	                break
-	            default:
-	                this.onHashChanged()
-	                break
-	        }
-
-	    },
 	    start: function (options) {
 	        if (this.started)
 	            throw new Error('avalon.history has already been started')
@@ -380,8 +366,6 @@
 	            this.mode = "iframepoll"
 	        }
 	        avalon.log('avalon run mmHistory in the ', this.mode, 'mode')
-	        //IE6不支持maxHeight, IE7支持XMLHttpRequest, IE8支持window.Element，querySelector, 
-	        //IE9支持window.Node, window.HTMLElement, IE10不支持条件注释
 	        // 支持popstate 就监听popstate
 	        // 支持hashchange 就监听hashchange(IE8,IE9,FF3)
 	        // 否则的话只能每隔一段时间进行检测了(IE6, IE7)
@@ -401,6 +385,7 @@
 	                window.onhashchange = mmHistory.onHashChanged
 	                break
 	            case "iframepoll":
+	                //也有人这样玩 http://www.cnblogs.com/meteoric_cry/archive/2011/01/11/1933164.html
 	                avalon.ready(function () {
 	                    var iframe = document.createElement('iframe')
 	                    iframe.id = options.iframeID
@@ -450,7 +435,6 @@
 	        this.started = false
 	    },
 	    setHash: function (s, replace) {
-	        // Mozilla always adds an entry to the history
 	        switch (this.mode) {
 	            case 'iframepoll':
 	                if (replace) {
@@ -465,18 +449,14 @@
 	                }
 	                break
 	            case 'popstate':
-	                //http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
 	                var path = (this.options.root + '/' + s).replace(/\/+/g, '/')
-	                if (replace) {
-	                    window.history.replaceState({}, document.title, path)
-	                } else {
-	                    window.history.pushState({}, document.title, path)
-	                }
-	                // Fire an onpopstate event manually since pushing does not obviously
-	                // trigger the pop event.
-	                this.fire()
+	                var method = replace ? 'replaceState': 'pushState'
+	                history[method]({}, document.title, path)
+	                // 手动触发onpopstate event
+	                this.onHashChanged()
 	                break
 	            default:
+	                //http://stackoverflow.com/questions/9235304/how-to-replace-the-location-hash-and-only-keep-the-last-history-entry
 	                var newHash = this.options.hashPrefix + s
 	                if (replace && location.hash !== newHash) {
 	                    history.back()
@@ -484,8 +464,6 @@
 	                location.hash = newHash
 	                break
 	        }
-
-	        return this
 	    },
 	    writeFrame: function (s) {
 	        // IE support...
@@ -504,32 +482,30 @@
 	        return this
 	    },
 	    getPath: function () {
-	        var path = location.pathname
-	        var path = path.split(this.options.root)[1]
+	        var path = location.pathname.replace(this.options.root,'')
 	        if (path.charAt(0) !== '/') {
 	            path = '/' + path
 	        }
 	        return path
 	    },
-	    onHashChanged: function (hash, onClick) {
-	        if (!onClick) {
+	    onHashChanged: function (hash, clickMode) {
+	        if (!clickMode) {
 	            hash = mmHistory.mode === 'popstate' ? mmHistory.getPath() :
 	                    location.href.replace(/.*#!?/, '')
-	            //console.log(hash, oldHash, 'ddd')
 	        }
 	        hash = decodeURIComponent(hash)
 	        hash = hash.charAt(0) === '/' ? hash : '/' + hash
 	        if (hash !== mmHistory.hash) {
 	               mmHistory.hash = hash
 
-	            if (avalon.router) {
+	            if (avalon.router) {//即mmRouter
 	                hash = avalon.router.navigate(hash, 0)
 	            }
 	         
-	            if (onClick) {
+	            if (clickMode) {
 	                mmHistory.setHash(hash)
 	            }
-	            if (onClick && mmHistory.options.autoScroll) {
+	            if (clickMode && mmHistory.options.autoScroll) {
 	                autoScroll(hash.slice(1))
 	            }
 	        }
@@ -552,21 +528,13 @@
 	    }
 	    return decodeURI(path.slice(index))
 	}
-	function which(e) {
-	    return null === e.which ? e.button : e.which
-	}
-	function sameOrigin(href) {
-	    var origin = location.protocol + '//' + location.hostname
-	    if (location.port)
-	        origin += ':' + location.port
-	    return (href && (0 === href.indexOf(origin)))
-	}
-	//https://github.com/asual/jquery-address/blob/master/src/jquery.address.js
+
+
 
 	//劫持页面上所有点击事件，如果事件源来自链接或其内部，
 	//并且它不会跳出本页，并且以"#/"或"#!/"开头，那么触发updateLocation方法
-	// 
 	avalon.bind(document, "click", function (e) {
+	    //https://github.com/asual/jquery-address/blob/master/src/jquery.address.js
 	    //https://github.com/angular/angular.js/blob/master/src/ng/location.js
 	    //下面十种情况将阻止进入路由系列
 	    //1. 路由器没有启动
@@ -574,7 +542,7 @@
 	        return
 	    }
 	    //2. 不是左键点击或使用组合键
-	    if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2 || e.button === 2) {
+	    if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2 ) {
 	        return
 	    }
 	    //3. 此事件已经被阻止
@@ -597,7 +565,7 @@
 	    }
 
 	    //6. 目标链接是用于下载资源或指向外部
-	    if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
+	    if (el.gasAttribute('download') != null || el.getAttribute('rel') === 'external')
 	        return
 
 	    //7. 只是邮箱地址
@@ -610,7 +578,7 @@
 	    }
 
 	    e.preventDefault()
-	    console.log(href.replace('#!', ''))
+	    //终于达到目的地
 	    mmHistory.onHashChanged(href.replace('#!', ''), true)
 
 	})
@@ -654,10 +622,6 @@
 	    }
 	}
 
-	function isHasHash() {
-	    return !(location.hash === '' || location.hash === '#')
-	}
-
 
 	module.exports = avalon.history = mmHistory
 
@@ -668,7 +632,7 @@
 
 	
 	function supportLocalStorage() {
-	    try {
+	    try {//看是否支持localStorage
 	        localStorage.setItem("avalon", 1)
 	        localStorage.removeItem("avalon")
 	        return true
@@ -693,7 +657,7 @@
 	            cookieID = null
 	        }
 	        localStorage.setItem("msLastPath", path)
-	        cookieID = setTimeout(function () {
+	        cookieID = setTimeout(function () {//模拟过期时间
 	            localStorage.removItem("msLastPath")
 	        }, 1000 * 60 * 60 * 24)
 	    }
