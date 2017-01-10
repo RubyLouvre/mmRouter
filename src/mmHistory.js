@@ -165,7 +165,8 @@ var mmHistory = {
         var f = mmHistory.iframe
         var d = f.contentDocument || f.contentWindow.document
         d.open()
-        d.write("<script>_hash = '" + s + "'; onload = parent.avalon.history.syncHash;<script>")
+        var end ="/script"
+        d.write("<script>_hash = '" + s + "'; onload = parent.avalon.history.syncHash;<"+end+">")
         d.close()
     },
     syncHash: function() {
