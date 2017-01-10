@@ -238,7 +238,7 @@ avalon.bind(document, "click", function(e) {
         return
     }
     //2. 不是左键点击或使用组合键
-    if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2 || e.button === 2) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.which === 2 ) {
         return
     }
     //3. 此事件已经被阻止
@@ -261,7 +261,7 @@ avalon.bind(document, "click", function(e) {
     }
 
     //6. 目标链接是用于下载资源或指向外部
-    if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
+    if (el.gasAttribute('download') != null || el.getAttribute('rel') === 'external')
         return
 
     //7. 只是邮箱地址
