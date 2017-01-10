@@ -2,6 +2,12 @@
  * 
  * version 1.0
  * built in 2015.11.19
+ * 
+ * v0.9.6
+ * 修正gasAttribute typo
+ * 修正mmHistory document.write BUG
+ * 
+ * 
  */
 
 var mmHistory = require('./mmHistory')
