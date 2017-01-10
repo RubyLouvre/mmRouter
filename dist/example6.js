@@ -81,7 +81,7 @@
 
 	var hash = avalon.history.getPath()
 	if (hash === '/exmaple6.html') {//比如一些网站没有, https://segmentfault.com/
-	    hash = '/aaa' 
+	    hash = '/aaa'
 	}
 	avalon.router.navigate(hash, 1)//默认打开
 
@@ -100,7 +100,7 @@
 	为监听数组添加toJSON方法
 	IE7的checked属性应该使用defaultChecked来设置
 	对旧版firefox的children进行polyfill
-	修正ms-if,ms-text同在一个元素时出BUG的情况 
+	修正ms-if,ms-text同在一个元素时出BUG的情况
 	修正ms-visible,ms-effect同在一个元素时出BUG的情况
 	修正selected属性同步问题
 
@@ -136,13 +136,13 @@
 
 	    /*
 	     https://github.com/rsms/js-lru
-	     entry             entry             entry             entry        
-	     ______            ______            ______            ______       
-	     | head |.newer => |      |.newer => |      |.newer => | tail |      
-	     |  A   |          |  B   |          |  C   |          |  D   |      
-	     |______| <= older.|______| <= older.|______| <= older.|______|      
-	     
-	     removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added 
+	     entry             entry             entry             entry
+	     ______            ______            ______            ______
+	     | head |.newer => |      |.newer => |      |.newer => | tail |
+	     |  A   |          |  B   |          |  C   |          |  D   |
+	     |______| <= older.|______| <= older.|______| <= older.|______|
+
+	     removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added
 	     */
 	    function Cache(maxLength) {
 	        // 标识当前缓存数组的大小
@@ -232,7 +232,7 @@
 	                // 将E的newer指向D
 	                this.tail.newer = entry; // E. <-- D
 	            }
-	            // 改变 tail 为D 
+	            // 改变 tail 为D
 	            this.tail = entry;
 	            return entry.value;
 	        }
@@ -1004,7 +1004,7 @@
 	        }
 	        /** //好像没有用
 	         var s1 = s[1] || ''
-	        
+
 	          if (s1.length < prec) {
 	                  s1 += new Array(prec - s[1].length + 1).join('0')
 	                  s[1] = s1
@@ -1023,7 +1023,7 @@
 	    };
 
 	    //https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
-	    //    <a href="javasc&NewLine;ript&colon;alert('XSS')">chrome</a> 
+	    //    <a href="javasc&NewLine;ript&colon;alert('XSS')">chrome</a>
 	    //    <a href="data:text/html;base64, PGltZyBzcmM9eCBvbmVycm9yPWFsZXJ0KDEpPg==">chrome</a>
 	    //    <a href="jav	ascript:alert('XSS');">IE67chrome</a>
 	    //    <a href="jav&#x09;ascript:alert('XSS');">IE67chrome</a>
@@ -1068,7 +1068,7 @@
 	     'a': am/pm marker
 	     'Z': 4 digit (+sign) representation of the timezone offset (-1200-+1200)
 	     format string can also be one of the following predefined localizable formats:
-	     
+
 	     'medium': equivalent to 'MMM d, y h:mm:ss a' for en_US locale (e.g. Sep 3, 2010 12:05:08 pm)
 	     'short': equivalent to 'M/d/yy h:mm a' for en_US locale (e.g. 9/3/10 12:05 pm)
 	     'fullDate': equivalent to 'EEEE, MMMM d,y' for en_US locale (e.g. Friday, September 3, 2010)
@@ -1826,7 +1826,7 @@
 	                    }
 	                }
 	            } catch (e) {
-	                // 对象不支持此属性或方法 src https://github.com/ecomfe/zrender 
+	                // 对象不支持此属性或方法 src https://github.com/ecomfe/zrender
 	                // 未知名称。\/n
 	                // e.message大概这样,需要trim
 	                //IE6-8,元素节点不支持其他元素节点的内置属性,如src, href, for
@@ -2325,7 +2325,7 @@
 	        return get ? val : this;
 	    };
 
-	    /* 
+	    /*
 	     * 将要检测的字符串的字符串替换成??123这样的格式
 	     */
 	    var stringNum = 0;
@@ -2405,8 +2405,8 @@
 	        template: 1
 	    };
 
-	    /* 
-	     *  此模块只用于文本转虚拟DOM, 
+	    /*
+	     *  此模块只用于文本转虚拟DOM,
 	     *  因为在真实浏览器会对我们的HTML做更多处理,
 	     *  如, 添加额外属性, 改变结构
 	     *  此模块就是用于模拟这些行为
@@ -2629,7 +2629,7 @@
 	                if (i === -1) {
 	                    i = str.length;
 	                } else if (!rtagStart.test(str.charAt(i + 1))) {
-	                    //处理`内容2 {{ (idx1 < < <  1 ? 'red' : 'blue' ) + a }} ` 的情况 
+	                    //处理`内容2 {{ (idx1 < < <  1 ? 'red' : 'blue' ) + a }} ` 的情况
 	                    i = this.fixPos(str, i);
 	                }
 	                var nodeValue = str.slice(0, i).replace(rfill, fill);
@@ -3280,7 +3280,7 @@
 	    /**
 	     * ------------------------------------------------------------
 	     *                          DOM Api
-	     * shim,class,data,css,val,html,event,ready  
+	     * shim,class,data,css,val,html,event,ready
 	     * ------------------------------------------------------------
 	     */
 
@@ -3567,7 +3567,7 @@
 	        toDOM: function toDOM() {
 	            if (this.dom) return this.dom;
 	            var f = this.toFragment();
-	            //IE6-11 docment-fragment都没有children属性 
+	            //IE6-11 docment-fragment都没有children属性
 	            this.split = f.lastChild;
 	            return this.dom = f;
 	        },
@@ -3629,7 +3629,7 @@
 	    /**
 	    $$skipArray:是系统级通用的不可监听属性
 	    $skipArray: 是当前对象特有的不可监听属性
-	    
+
 	     不同点是
 	     $$skipArray被hasOwnProperty后返回false
 	     $skipArray被hasOwnProperty后返回true
@@ -3849,7 +3849,7 @@
 
 	        replace(robjectKey, function (_, a, b) {
 	            //移除所有键名
-	            return a + dig(b) + ':'; //比如 ms-widget="[{is:'ms-address-wrap', $id:'address'}]"这样极端的情况 
+	            return a + dig(b) + ':'; //比如 ms-widget="[{is:'ms-address-wrap', $id:'address'}]"这样极端的情况
 	        }).replace(rvmKey, '$1__vmodel__.'). //转换@与##为__vmodel__
 	        replace(rfilterName, function (a, b) {
 	            //移除所有过滤器的名字
@@ -4082,7 +4082,7 @@
 	    };
 
 	    /**
-	    * 
+	    *
 	     与Computed等共享UUID
 	    */
 	    var obid = 1;
@@ -4750,7 +4750,7 @@
 	                        uniq[name] = true;
 	                    }
 	                }
-	                //添加访问器属性 
+	                //添加访问器属性
 	                for (name in accessors) {
 	                    if (uniq[name]) {
 	                        continue;
@@ -4865,7 +4865,7 @@
 	                    if (this.deep) {
 	                        var deep = typeof this.deep === 'number' ? this.deep : 6;
 	                        for (var i in newVal) {
-	                            //diff差异点  
+	                            //diff差异点
 	                            if (!deepEquals(newVal[i], oldVal[i], 4)) {
 	                                this.value = newVal;
 	                                return true;
@@ -5286,7 +5286,7 @@
 	        return toMillisecond(tranDuration) || toMillisecond(animDuration);
 	    }
 	    /**
-	     * 
+	     *
 	    <!DOCTYPE html>
 	    <html>
 	        <head>
@@ -5306,10 +5306,10 @@
 	                    height:100px;
 	                    background: #29b6f6;
 	                    transition:all 2s;
-	                    -moz-transition: all 2s; 
+	                    -moz-transition: all 2s;
 	                    -webkit-transition: all 2s;
 	                    -o-transition:all 2s;
-	                }  
+	                }
 	                .animate-enter-active, .animate-leave{
 	                    width:300px;
 	                    height:300px;
@@ -5327,7 +5327,7 @@
 	            </div>
 	    </body>
 	    </html>
-	     * 
+	     *
 	     */
 
 	    var none = 'none';
@@ -5799,7 +5799,7 @@
 	    }
 
 	    /**
-	     * 
+	     *
 	     * @param {type} fragment
 	     * @param {type} this
 	     * @param {type} index
@@ -6232,7 +6232,7 @@
 	            lookupOption(this.node, a);
 	        },
 	        contenteditable: function contenteditable() {
-	            //处理单个innerHTML 
+	            //处理单个innerHTML
 
 	            var vnodes = fromString(this.value);
 	            var fragment = createFragment();
@@ -6268,7 +6268,7 @@
 	                field.setCaret(dom, pos);
 	            }
 	            //vm.aaa = '1234567890'
-	            //处理 <input ms-duplex='@aaa|limitBy(8)'/>{{@aaa}} 这种格式化同步不一致的情况 
+	            //处理 <input ms-duplex='@aaa|limitBy(8)'/>{{@aaa}} 这种格式化同步不一致的情况
 	        },
 	        radio: function radio() {
 	            var field = this;
@@ -6363,7 +6363,7 @@
 	        }
 	    }
 
-	    /* 
+	    /*
 	     * 通过绑定事件同步vmodel
 	     * 总共有三种方式同步视图
 	     * 1. 各种事件 input, change, click, propertychange, keydown...
@@ -6435,7 +6435,7 @@
 	                        if (!/\[native code\]/.test(window$1.Int8Array)) {
 	                            events.keydown = updateModelKeyDown; //safari < 5 opera < 11
 	                            events.paste = updateModelDelay; //safari < 5
-	                            events.cut = updateModelDelay; //safari < 5 
+	                            events.cut = updateModelDelay; //safari < 5
 	                            if (window$1.netscape) {
 	                                // Firefox <= 3.6 doesn't fire the 'input' event when text is filled in through autocomplete
 	                                events.DOMAutoComplete = updateDataHandle;
@@ -6447,7 +6447,7 @@
 	        }
 
 	        if (/password|text/.test(dom.type)) {
-	            events.focus = openCaret; //判定是否使用光标修正功能 
+	            events.focus = openCaret; //判定是否使用光标修正功能
 	            events.blur = closeCaret;
 	            data.getCaret = getCaret;
 	            data.setCaret = setCaret;
@@ -7279,7 +7279,7 @@
 
 	        /**
 	         * 从文本节点获取指令
-	         * @param {type} vdom 
+	         * @param {type} vdom
 	         * @param {type} scope
 	         * @returns {undefined}
 	         */
@@ -7294,7 +7294,7 @@
 
 	        /**
 	         * 从注释节点获取指令
-	         * @param {type} vdom 
+	         * @param {type} vdom
 	         * @param {type} scope
 	         * @param {type} parentChildren
 	         * @returns {undefined}
@@ -7308,7 +7308,7 @@
 
 	        /**
 	         * 从元素节点的nodeName与属性中获取指令
-	         * @param {type} vdom 
+	         * @param {type} vdom
 	         * @param {type} scope
 	         * @param {type} parentChildren
 	         * @param {type} isRoot 用于执行complete方法
@@ -7960,7 +7960,7 @@
 	/***/ function(module, exports, __webpack_require__) {
 
 		/*
-		 * 
+		 *
 		 * version 1.0
 		 * built in 2015.11.19
 		 */
@@ -8064,7 +8064,7 @@
 		    },
 		    /*
 		     *  @interface avalon.router.navigate 设置历史(改变URL)
-		     *  @param hash 访问的url hash   
+		     *  @param hash 访问的url hash
 		     */
 		    navigate: function (hash, mode) {
 		        var parsed = parseQuery(hash)
@@ -8078,7 +8078,7 @@
 		        // 模式1, 改变URL, 不产生历史实体,   执行回调
 		        // 模式2, 改变URL, 产生历史实体,    执行回调
 		        if (mode === 1) {
-		          
+
 		            avalon.history.setHash(hash, true)
 		        } else if (mode === 2) {
 		            avalon.history.setHash(hash)
@@ -8295,7 +8295,7 @@
 		            this.mode = "iframepoll"
 		        }
 		        avalon.log('avalon run mmHistory in the ', this.mode, 'mode')
-		        //IE6不支持maxHeight, IE7支持XMLHttpRequest, IE8支持window.Element，querySelector, 
+		        //IE6不支持maxHeight, IE7支持XMLHttpRequest, IE8支持window.Element，querySelector,
 		        //IE9支持window.Node, window.HTMLElement, IE10不支持条件注释
 		        // 支持popstate 就监听popstate
 		        // 支持hashchange 就监听hashchange(IE8,IE9,FF3)
@@ -8440,7 +8440,7 @@
 		            if (avalon.router) {
 		                hash = avalon.router.navigate(hash, 0)
 		            }
-		         
+
 		            if (onClick) {
 		                mmHistory.setHash(hash)
 		            }
@@ -8480,7 +8480,7 @@
 
 		//劫持页面上所有点击事件，如果事件源来自链接或其内部，
 		//并且它不会跳出本页，并且以"#/"或"#!/"开头，那么触发updateLocation方法
-		// 
+		//
 		avalon.bind(document, "click", function (e) {
 		    //https://github.com/angular/angular.js/blob/master/src/ng/location.js
 		    //下面十种情况将阻止进入路由系列
@@ -8512,7 +8512,7 @@
 		    }
 
 		    //6. 目标链接是用于下载资源或指向外部
-		    if (el.hasAttribute('download') || el.getAttribute('rel') === 'external')
+		    if (el.getAttribute('download') || el.getAttribute('rel') === 'external')
 		        return
 
 		    //7. 只是邮箱地址
@@ -8563,7 +8563,7 @@
 		        if (offset) {
 		            var elemTop = elem.getBoundingClientRect().top
 		            window.scrollBy(0, elemTop - offset.top)
-		        }   
+		        }
 		    } else {
 		        window.scrollTo(0, 0)
 		    }
@@ -8581,7 +8581,7 @@
 	/* 7 */
 	/***/ function(module, exports) {
 
-		
+
 		function supportLocalStorage() {
 		    try {
 		        localStorage.setItem("avalon", 1)
@@ -8621,7 +8621,7 @@
 		        setCookie('msLastPath', path)
 		    }
 		    function setCookie(key, value) {
-		        var date = new Date()//将date设置为1天以后的时间 
+		        var date = new Date()//将date设置为1天以后的时间
 		        date.setTime(date.getTime() + 1000 * 60 * 60 * 24)
 		        document.cookie = escapeCookie(key) + '=' + escapeCookie(value) + ';expires=' + date.toGMTString()
 		    }
