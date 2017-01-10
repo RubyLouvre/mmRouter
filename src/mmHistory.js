@@ -261,7 +261,7 @@ avalon.bind(document, "click", function(e) {
     }
 
     //6. 目标链接是用于下载资源或指向外部
-    if (el.gasAttribute('download') != null || el.getAttribute('rel') === 'external')
+    if (el.getAttribute('download') != null || el.getAttribute('rel') === 'external')
         return
 
     //7. 只是邮箱地址

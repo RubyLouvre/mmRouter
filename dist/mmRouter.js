@@ -45,7 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
-	 * 
+	 *
 	 * version 1.0
 	 * built in 2015.11.19
 	 */
@@ -149,7 +149,7 @@
 	    },
 	    /*
 	     *  @interface avalon.router.navigate 设置历史(改变URL)
-	     *  @param hash 访问的url hash   
+	     *  @param hash 访问的url hash
 	     */
 	    navigate: function (hash, mode) {
 	        var parsed = parseQuery(hash)
@@ -163,7 +163,7 @@
 	        // 模式1, 改变URL, 不产生历史实体,   执行回调
 	        // 模式2, 改变URL, 产生历史实体,    执行回调
 	        if (mode === 1) {
-	          
+
 	            avalon.history.setHash(hash, true)
 	        } else if (mode === 2) {
 	            avalon.history.setHash(hash)
@@ -501,7 +501,7 @@
 	            if (avalon.router) {//即mmRouter
 	                hash = avalon.router.navigate(hash, 0)
 	            }
-	         
+
 	            if (clickMode) {
 	                mmHistory.setHash(hash)
 	            }
@@ -565,7 +565,7 @@
 	    }
 
 	    //6. 目标链接是用于下载资源或指向外部
-	    if (el.gasAttribute('download') != null || el.getAttribute('rel') === 'external')
+	    if (el.getAttribute('download') != null || el.getAttribute('rel') === 'external')
 	        return
 
 	    //7. 只是邮箱地址
@@ -616,7 +616,7 @@
 	        if (offset) {
 	            var elemTop = elem.getBoundingClientRect().top
 	            window.scrollBy(0, elemTop - offset.top)
-	        }   
+	        }
 	    } else {
 	        window.scrollTo(0, 0)
 	    }
@@ -630,7 +630,7 @@
 /* 7 */
 /***/ function(module, exports) {
 
-	
+
 	function supportLocalStorage() {
 	    try {//看是否支持localStorage
 	        localStorage.setItem("avalon", 1)
@@ -670,7 +670,7 @@
 	        setCookie('msLastPath', path)
 	    }
 	    function setCookie(key, value) {
-	        var date = new Date()//将date设置为1天以后的时间 
+	        var date = new Date()//将date设置为1天以后的时间
 	        date.setTime(date.getTime() + 1000 * 60 * 60 * 24)
 	        document.cookie = escapeCookie(key) + '=' + escapeCookie(value) + ';expires=' + date.toGMTString()
 	    }
