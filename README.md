@@ -54,15 +54,22 @@ var vm = avalon.define({
 //添加路由规则
 avalon.router.add("/aaa", function (a) {
     vm.currPath = this.path
+    // this里面能拿到如下东西:
+    // path: 路径
+    // query: 一个对象，就是？后面的东西转换成的对象
+    // param: 一个对象， 我们在定义路由规则时，那些以冒号开始的参数组成的对象
 })
 avalon.router.add("/bbb", function (a) {
     vm.currPath = this.path
 })
 avalon.router.add("/ccc", function (a) {
     vm.currPath = this.path
+    
 })
 avalon.router.add("/ddd/:ddd/:eee", function (a) {//:ddd为参数
     vm.currPath = this.path
+    console.log(this.query)
+    console.log(this.params)
 })
 //启动路由监听
 avalon.history.start({
